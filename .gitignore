@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*.pt
+*.pth
+*.npy
+*.pkl
+*.zip
+*.sigmf-data
+*.sigmf-meta
+rf_env/
+dronerf_data/
