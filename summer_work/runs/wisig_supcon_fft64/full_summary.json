@@ -1,0 +1,8 @@
+{
+  "total_steps": 13000,
+  "best_gap": 0.8339062128216028,
+  "best_step": 3250,
+  "lr": 0.0005,
+  "warmup": 1300,
+  "csv": "/home/pw26_akp_01/CAPSTONE/DL_model/summer_work/runs/wisig_supcon_fft64/train_log.csv"
+}

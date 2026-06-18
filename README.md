@@ -2,6 +2,30 @@
 
 Deep learning system that identifies radio transmitters by their **hardware manufacturing imperfections** — IQ imbalance, phase noise, PA nonlinearity — rather than by protocol or content. Includes open-set discovery of unknown emitters never seen during training.
 
+> **Active work → `summer_work/`.** The project has pivoted from the closed-set ORACLE
+> capstone (below) to **open-world discovery of individual same-model emitters under
+> cross-domain transfer**. The validated V4 encoder is reused (shared, not forked). See
+> `summer_work/CONTEXT.md` for the pivot, datasets, and locked decisions.
+
+---
+
+## Open-World Discovery (active)
+
+New pipeline in `summer_work/`, built on the same V4 encoder:
+
+- **Goal:** cluster signals from emitters *never seen in training* into distinct device
+  identities (discovery, not rejection), and show the metric transfers across domains.
+- **Metric-learning pool:** WiSig **ManyTx** — 150 same-protocol WiFi transmitters, so the
+  encoder must learn hardware individuality, not protocol shortcuts.
+- **Split:** board-disjoint (109 train / 41 discover Tx), STFT `n_fft=64, hop=16` → `[2,33,13]`.
+- **Status:** metric encoder trained fresh with SupCon (CFO augmentation off — it erases the
+  fingerprint; ablation in `runs/`). Best embedding health **intra/inter cosine gap 0.834**;
+  no receiver/day leakage. Finding: low-temperature tail (τ→0.07) collapses separation —
+  best at τ≈0.4–0.5. Discovery engine (HDBSCAN + count estimation) is next.
+
+Layout: `summer_work/{datasets,train,discover,runs}/`, `shared.py` (re-exports parent
+encoder + loss). Run logs, curves, and locked split IDs are under `runs/wisig_supcon_fft64/`.
+
 ---
 
 ## Overview
