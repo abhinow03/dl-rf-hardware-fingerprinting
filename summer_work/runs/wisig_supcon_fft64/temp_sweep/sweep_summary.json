@@ -1,0 +1,47 @@
+{
+  "winner": "const0.5",
+  "results": {
+    "const0.3": {
+      "tau_config": "const0.3",
+      "total_steps": 5000,
+      "peak_gap": 0.8148670233786106,
+      "peak_step": 3250,
+      "final_gap": 0.8118658699095249,
+      "final_inter": -0.012273494154214859,
+      "drop_from_peak": 0.0030011534690856934,
+      "collapsed": false,
+      "rx_gap_min": 0.0011404752731323242,
+      "rx_gap_max": 0.06553244590759277,
+      "best_model": null,
+      "csv": "/home/pw26_akp_01/CAPSTONE/DL_model/summer_work/runs/wisig_supcon_fft64/temp_sweep/sweep_const0.3.csv"
+    },
+    "const0.5": {
+      "tau_config": "const0.5",
+      "total_steps": 5000,
+      "peak_gap": 0.8523777835071087,
+      "peak_step": 4750,
+      "final_gap": 0.8522633910179138,
+      "final_inter": -0.0315173864364624,
+      "drop_from_peak": 0.00011439248919487,
+      "collapsed": false,
+      "rx_gap_min": 0.0011418461799621582,
+      "rx_gap_max": 0.05796271562576294,
+      "best_model": null,
+      "csv": "/home/pw26_akp_01/CAPSTONE/DL_model/summer_work/runs/wisig_supcon_fft64/temp_sweep/sweep_const0.5.csv"
+    },
+    "anneal0.5to0.2": {
+      "tau_config": "anneal0.5to0.2",
+      "total_steps": 5000,
+      "peak_gap": 0.8146756049245596,
+      "peak_step": 1500,
+      "final_gap": 0.7501995787024498,
+      "final_inter": 0.05504492670297623,
+      "drop_from_peak": 0.0644760262221098,
+      "collapsed": false,
+      "rx_gap_min": 0.0011418461799621582,
+      "rx_gap_max": 0.06398564577102661,
+      "best_model": null,
+      "csv": "/home/pw26_akp_01/CAPSTONE/DL_model/summer_work/runs/wisig_supcon_fft64/temp_sweep/sweep_anneal0.5to0.2.csv"
+    }
+  }
+}

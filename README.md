@@ -19,9 +19,14 @@ New pipeline in `summer_work/`, built on the same V4 encoder:
   encoder must learn hardware individuality, not protocol shortcuts.
 - **Split:** board-disjoint (109 train / 41 discover Tx), STFT `n_fft=64, hop=16` → `[2,33,13]`.
 - **Status:** metric encoder trained fresh with SupCon (CFO augmentation off — it erases the
-  fingerprint; ablation in `runs/`). Best embedding health **intra/inter cosine gap 0.834**;
-  no receiver/day leakage. Finding: low-temperature tail (τ→0.07) collapses separation —
-  best at τ≈0.4–0.5. Discovery engine (HDBSCAN + count estimation) is next.
+  fingerprint; ablation in `runs/`). Best embedding health **intra/inter cosine gap 0.859**,
+  stable, no receiver/day leakage (`runs/.../retrain_best/`). Discovery engine (HDBSCAN +
+  count estimation) is next.
+- **Temperature finding:** device separation is *monotone in SupCon temperature*. A sweep
+  (`runs/.../temp_sweep/`, const 0.3 / const 0.5 / anneal 0.5→0.2) settled it: **constant
+  τ=0.5 wins** — stable and highest gap. Any annealing toward ≤0.2 inflates inter-device
+  cosine and erodes the gap (τ→0.07 collapses it outright). Checkpoints are selected by
+  **eval gap, not loss** — loss was *lowest* in the worst-separating run.
 
 Layout: `summer_work/{datasets,train,discover,runs}/`, `shared.py` (re-exports parent
 encoder + loss). Run logs, curves, and locked split IDs are under `runs/wisig_supcon_fft64/`.

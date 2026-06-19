@@ -1,0 +1,14 @@
+{
+  "tau_config": "const0.5",
+  "total_steps": 8000,
+  "peak_gap": 0.859130373224616,
+  "peak_step": 7250,
+  "final_gap": 0.8583754226565361,
+  "final_inter": -0.02767907828092575,
+  "drop_from_peak": 0.0007549505680799484,
+  "collapsed": false,
+  "rx_gap_min": 0.0011380314826965332,
+  "rx_gap_max": 0.10346215963363647,
+  "best_model": "/home/pw26_akp_01/CAPSTONE/DL_model/summer_work/runs/wisig_supcon_fft64/retrain_best/best_model.pt",
+  "csv": "/home/pw26_akp_01/CAPSTONE/DL_model/summer_work/runs/wisig_supcon_fft64/retrain_best/sweep_const0.5.csv"
+}
