@@ -1,0 +1,248 @@
+{
+  "window_spec": "A-b resampled 25MS/s (A-a raw 10MS/s absent: raw .bin not on disk)",
+  "n_receivers": 1,
+  "n_distances": 4,
+  "distances": [
+    6,
+    9,
+    12,
+    15
+  ],
+  "n_sessions": 4,
+  "n_airframes": 7,
+  "subset_windows": 4192,
+  "subset_bursts": 131,
+  "g1": [
+    {
+      "emb": "512D",
+      "std": 1.004934549331665,
+      "nan": false,
+      "intra": 0.8609298467636108,
+      "inter": 0.8609523177146912,
+      "sep": -2.2470951080322266e-05
+    },
+    {
+      "emb": "128D",
+      "std": 0.08830217272043228,
+      "nan": false,
+      "intra": 0.44512954354286194,
+      "inter": 0.4457504451274872,
+      "sep": -0.0006209015846252441
+    },
+    {
+      "emb": "CosFace",
+      "std": 0.08777154982089996,
+      "nan": false,
+      "intra": 0.8367719054222107,
+      "inter": 0.8368574976921082,
+      "sep": -8.559226989746094e-05
+    }
+  ],
+  "g2_512_best_window": 0.24728260869565216,
+  "g2_verdict": "FAIL",
+  "probe": [
+    {
+      "emb": "512D",
+      "probe": "logreg",
+      "acc_window": 0.2391304347826087,
+      "acc_burst": 0.2826086956521739,
+      "chance": 0.14285714285714285
+    },
+    {
+      "emb": "512D",
+      "probe": "mlp",
+      "acc_window": 0.24728260869565216,
+      "acc_burst": 0.43478260869565216,
+      "chance": 0.14285714285714285
+    },
+    {
+      "emb": "128D",
+      "probe": "logreg",
+      "acc_window": 0.19904891304347827,
+      "acc_burst": 0.15217391304347827,
+      "chance": 0.14285714285714285
+    },
+    {
+      "emb": "128D",
+      "probe": "mlp",
+      "acc_window": 0.15964673913043478,
+      "acc_burst": 0.15217391304347827,
+      "chance": 0.14285714285714285
+    },
+    {
+      "emb": "CosFace",
+      "probe": "logreg",
+      "acc_window": 0.23029891304347827,
+      "acc_burst": 0.1956521739130435,
+      "chance": 0.14285714285714285
+    },
+    {
+      "emb": "CosFace",
+      "probe": "mlp",
+      "acc_window": 0.21807065217391305,
+      "acc_burst": 0.21739130434782608,
+      "chance": 0.14285714285714285
+    }
+  ],
+  "confound": [
+    {
+      "target": "distance",
+      "emb": "512D",
+      "acc": 0.28872282608695654,
+      "chance": 0.2748091603053435
+    },
+    {
+      "target": "distance",
+      "emb": "128D",
+      "acc": 0.2717391304347826,
+      "chance": 0.2748091603053435
+    }
+  ],
+  "discovery": [
+    {
+      "proto": "D0_coherent",
+      "emb": "128D",
+      "mcs": 5,
+      "n_bursts": 315,
+      "per_dev": 45,
+      "ARI": -0.0001681100978922239,
+      "NMI": 0.08036655566036302,
+      "purity": 0.19682539682539682,
+      "K_est": 3,
+      "noise": 0.044444444444444446
+    },
+    {
+      "proto": "D0_coherent",
+      "emb": "128D",
+      "mcs": 7,
+      "n_bursts": 315,
+      "per_dev": 45,
+      "ARI": 0.0003254027498578921,
+      "NMI": 0.07163044938769343,
+      "purity": 0.1873015873015873,
+      "K_est": 2,
+      "noise": 0.0380952380952381
+    },
+    {
+      "proto": "D0_coherent",
+      "emb": "512D",
+      "mcs": 5,
+      "n_bursts": 315,
+      "per_dev": 45,
+      "ARI": -0.0005519980804890869,
+      "NMI": 0.23685289929436654,
+      "purity": 0.3523809523809524,
+      "K_est": 3,
+      "noise": 0.21587301587301588
+    },
+    {
+      "proto": "D0_coherent",
+      "emb": "512D",
+      "mcs": 7,
+      "n_bursts": 315,
+      "per_dev": 45,
+      "ARI": -0.001303549380394571,
+      "NMI": 0.25718836235746534,
+      "purity": 0.37777777777777777,
+      "K_est": 3,
+      "noise": 0.2507936507936508
+    },
+    {
+      "proto": "D0_coherent",
+      "emb": "CosFace",
+      "mcs": 5,
+      "n_bursts": 315,
+      "per_dev": 45,
+      "ARI": -0.0004592068401257678,
+      "NMI": 0.2525603793360672,
+      "purity": 0.3746031746031746,
+      "K_est": 3,
+      "noise": 0.24761904761904763
+    },
+    {
+      "proto": "D0_coherent",
+      "emb": "CosFace",
+      "mcs": 7,
+      "n_bursts": 315,
+      "per_dev": 45,
+      "ARI": 0.00014469177551277733,
+      "NMI": 0.262739976832237,
+      "purity": 0.3746031746031746,
+      "K_est": 2,
+      "noise": 0.2507936507936508
+    },
+    {
+      "proto": "D1_multicond",
+      "emb": "128D",
+      "mcs": 5,
+      "n_bursts": 336,
+      "per_dev": 48,
+      "ARI": 0.0034025054813089637,
+      "NMI": 0.43644336963317953,
+      "purity": 0.8154761904761905,
+      "K_est": 2,
+      "noise": 0.75
+    },
+    {
+      "proto": "D1_multicond",
+      "emb": "128D",
+      "mcs": 7,
+      "n_bursts": 336,
+      "per_dev": 48,
+      "ARI": 0.0008262479747179622,
+      "NMI": 0.434755436031324,
+      "purity": 0.8095238095238095,
+      "K_est": 2,
+      "noise": 0.75
+    },
+    {
+      "proto": "D1_multicond",
+      "emb": "512D",
+      "mcs": 5,
+      "n_bursts": 336,
+      "per_dev": 48,
+      "ARI": 0.0017485343168226633,
+      "NMI": 0.47080368701722874,
+      "purity": 0.9136904761904762,
+      "K_est": 3,
+      "noise": 0.8720238095238095
+    },
+    {
+      "proto": "D1_multicond",
+      "emb": "512D",
+      "mcs": 7,
+      "n_bursts": 336,
+      "per_dev": 48,
+      "ARI": 0.0002726173828869627,
+      "NMI": 0.46185724454809285,
+      "purity": 0.8839285714285714,
+      "K_est": 2,
+      "noise": 0.8422619047619048
+    },
+    {
+      "proto": "D1_multicond",
+      "emb": "CosFace",
+      "mcs": 5,
+      "n_bursts": 336,
+      "per_dev": 48,
+      "ARI": 0.0,
+      "NMI": 0.501328045253385,
+      "purity": 1.0,
+      "K_est": 0,
+      "noise": 1.0
+    },
+    {
+      "proto": "D1_multicond",
+      "emb": "CosFace",
+      "mcs": 7,
+      "n_bursts": 336,
+      "per_dev": 48,
+      "ARI": 0.0,
+      "NMI": 0.501328045253385,
+      "purity": 1.0,
+      "K_est": 0,
+      "noise": 1.0
+    }
+  ],
+  "g4": "BOTH LOW -> feature-level transfer failure (defer to Step-C/G2); neither protocol discovers [128D] d0=0.000 d1=0.002 K~2.0 (true=7)"
+}

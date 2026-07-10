@@ -1,0 +1,418 @@
+{
+  "task1_coverage": {
+    "rows": [
+      {
+        "airframe": "mavic3_1",
+        "model": "mavic3",
+        "u1_files": 3,
+        "u2_files": 5,
+        "both_receivers": true,
+        "total_files": 8
+      },
+      {
+        "airframe": "mavic3C_1",
+        "model": "mavic3C",
+        "u1_files": 3,
+        "u2_files": 6,
+        "both_receivers": true,
+        "total_files": 9
+      },
+      {
+        "airframe": "mavic3S_1",
+        "model": "mavic3S",
+        "u1_files": 0,
+        "u2_files": 4,
+        "both_receivers": false,
+        "total_files": 4
+      },
+      {
+        "airframe": "mavicAir2_1",
+        "model": "mavicAir2",
+        "u1_files": 3,
+        "u2_files": 7,
+        "both_receivers": true,
+        "total_files": 10
+      },
+      {
+        "airframe": "mavicAir2_2",
+        "model": "mavicAir2",
+        "u1_files": 0,
+        "u2_files": 8,
+        "both_receivers": false,
+        "total_files": 8
+      },
+      {
+        "airframe": "mavicAir2_3",
+        "model": "mavicAir2",
+        "u1_files": 0,
+        "u2_files": 7,
+        "both_receivers": false,
+        "total_files": 7
+      },
+      {
+        "airframe": "mavicAir2_4",
+        "model": "mavicAir2",
+        "u1_files": 0,
+        "u2_files": 2,
+        "both_receivers": false,
+        "total_files": 2
+      },
+      {
+        "airframe": "mavicAir2_5",
+        "model": "mavicAir2",
+        "u1_files": 0,
+        "u2_files": 3,
+        "both_receivers": false,
+        "total_files": 3
+      },
+      {
+        "airframe": "mavicAir2_6",
+        "model": "mavicAir2",
+        "u1_files": 0,
+        "u2_files": 3,
+        "both_receivers": false,
+        "total_files": 3
+      },
+      {
+        "airframe": "mavicAir2_7",
+        "model": "mavicAir2",
+        "u1_files": 0,
+        "u2_files": 2,
+        "both_receivers": false,
+        "total_files": 2
+      },
+      {
+        "airframe": "mavicAir2_8",
+        "model": "mavicAir2",
+        "u1_files": 0,
+        "u2_files": 3,
+        "both_receivers": false,
+        "total_files": 3
+      },
+      {
+        "airframe": "mavicAir2s_1",
+        "model": "mavicAir2s",
+        "u1_files": 2,
+        "u2_files": 4,
+        "both_receivers": true,
+        "total_files": 6
+      },
+      {
+        "airframe": "mavicAir2s_2",
+        "model": "mavicAir2s",
+        "u1_files": 0,
+        "u2_files": 3,
+        "both_receivers": false,
+        "total_files": 3
+      },
+      {
+        "airframe": "mavicAir2s_3",
+        "model": "mavicAir2s",
+        "u1_files": 0,
+        "u2_files": 2,
+        "both_receivers": false,
+        "total_files": 2
+      },
+      {
+        "airframe": "mavicAir2s_4",
+        "model": "mavicAir2s",
+        "u1_files": 0,
+        "u2_files": 1,
+        "both_receivers": false,
+        "total_files": 1
+      },
+      {
+        "airframe": "mavicAir2s_5",
+        "model": "mavicAir2s",
+        "u1_files": 0,
+        "u2_files": 1,
+        "both_receivers": false,
+        "total_files": 1
+      },
+      {
+        "airframe": "mavicAir2s_6",
+        "model": "mavicAir2s",
+        "u1_files": 0,
+        "u2_files": 2,
+        "both_receivers": false,
+        "total_files": 2
+      },
+      {
+        "airframe": "mavicAir2s_7",
+        "model": "mavicAir2s",
+        "u1_files": 0,
+        "u2_files": 2,
+        "both_receivers": false,
+        "total_files": 2
+      },
+      {
+        "airframe": "mini3pro_1",
+        "model": "mini3pro",
+        "u1_files": 0,
+        "u2_files": 9,
+        "both_receivers": false,
+        "total_files": 9
+      },
+      {
+        "airframe": "mini3pro_2",
+        "model": "mini3pro",
+        "u1_files": 3,
+        "u2_files": 3,
+        "both_receivers": true,
+        "total_files": 6
+      },
+      {
+        "airframe": "mini4PRO_1",
+        "model": "mini4PRO",
+        "u1_files": 0,
+        "u2_files": 3,
+        "both_receivers": false,
+        "total_files": 3
+      },
+      {
+        "airframe": "mini4PRO_2",
+        "model": "mini4PRO",
+        "u1_files": 0,
+        "u2_files": 2,
+        "both_receivers": false,
+        "total_files": 2
+      },
+      {
+        "airframe": "mini5PRO_1",
+        "model": "mini5PRO",
+        "u1_files": 3,
+        "u2_files": 9,
+        "both_receivers": true,
+        "total_files": 12
+      }
+    ],
+    "both_receiver_all": [
+      "mavic3_1",
+      "mavic3C_1",
+      "mavicAir2_1",
+      "mavicAir2s_1",
+      "mini3pro_2",
+      "mini5PRO_1"
+    ],
+    "both_receiver_mavicAir2": [
+      "mavicAir2_1"
+    ],
+    "R2_feasible": false,
+    "R2_verdict": "SKIPPED \u2014 only 1 mavicAir2 airframe(s) have both receivers (<4 required); not forced (guardrail).",
+    "U_semantics": "U = USRP receiver number (two clock-synced USRP-2943s), per DRFF-R2 dataset paper. NOT a within-airframe channel condition.",
+    "step3b_correction": "step3b confound probe treated U as one of the nuisance conditions (D/C/U/H/St) predicted within same-model groups \u2014 SUPERSEDED: U is the receiver-diversity axis (analog of WiSig rx), not a within-airframe cue.",
+    "step3b_holdout_verdict": "VALID, no re-run: the session-disjoint probe defined session=(airframe,U,D,C) with U INCLUDED, so held-out test sessions differ from train in real capture structure (receiver and/or distance/channel). The 0.60 mavicAir2 clean number (OPT-B logreg/mlp burst) held out genuine capture structure and stands; best 0.833 (mavicAir2s OPT-B mlp burst). A stricter receiver-DISJOINT same-model probe is infeasible (only mavicAir2_1 has both u1&u2).",
+    "n_both_receiver": 1
+  },
+  "task2_fineness": {
+    "rows": [
+      {
+        "slice_type": "same_board_20",
+        "n_slices": 5,
+        "K": 8,
+        "hdb_ARI": 0.812996476191984,
+        "hdb_K": 8.0,
+        "hdb_noise": 0.020416666666666666,
+        "oracleK_kmeans": 0.8953784936503473,
+        "oracleK_spectral": 0.49952148839572275,
+        "knn1": 0.9966666666666667,
+        "cos_gap": 0.49010883569717406,
+        "n_bursts": 960.0,
+        "chance": 0.125
+      },
+      {
+        "slice_type": "mixed_board",
+        "n_slices": 5,
+        "K": 8,
+        "hdb_ARI": 0.7688181344746375,
+        "hdb_K": 7.0,
+        "hdb_noise": 0.04145833333333333,
+        "oracleK_kmeans": 0.8066706567801247,
+        "oracleK_spectral": 0.5450673097372473,
+        "knn1": 0.9922916666666666,
+        "cos_gap": 0.5102099657058716,
+        "n_bursts": 960.0,
+        "chance": 0.125
+      }
+    ],
+    "boards_ge8": [
+      "20"
+    ],
+    "K": 8,
+    "same_board_oracleK": 0.8953784936503473,
+    "mixed_board_oracleK": 0.8066706567801247,
+    "verdict": "FINENESS is NOT the wall: same-board K8 oracle-K=0.895 (>=0.60) clusters well within-domain -> the domain-gap sentence stands clean (mixed-board K8 oracle=0.807).",
+    "approximation_note": "same-board WiSig devices are the most physically-similar hardware WiSig offers but are NOT same-model-identical like 8 mavicAir2 airframes; this is an approximation of same-model fineness, labeled as such."
+  },
+  "task3_hybrid": {
+    "drff_rows": [
+      {
+        "regime": "DRFF_E1_mavicAir2",
+        "variant": "classical_only",
+        "dim": 19,
+        "hdb_ARI": 0.191829680279283,
+        "hdb_K": 3,
+        "hdb_noise": 0.5390625,
+        "oracleK_kmeans": 0.2518071471579508,
+        "oracleK_spectral": 0.2683753895531925,
+        "knn1": 0.609375,
+        "cos_gap": 0.37244220450520515,
+        "n_bursts": 256,
+        "chance": 0.125
+      },
+      {
+        "regime": "DRFF_E1_mavicAir2",
+        "variant": "encoder_only",
+        "dim": 512,
+        "hdb_ARI": 0.18183654270331176,
+        "hdb_K": 3,
+        "hdb_noise": 0.5078125,
+        "oracleK_kmeans": 0.25387150817439147,
+        "oracleK_spectral": 0.22461888544994638,
+        "knn1": 0.6875,
+        "cos_gap": 0.35140765458345413,
+        "n_bursts": 256,
+        "chance": 0.125
+      },
+      {
+        "regime": "DRFF_E1_mavicAir2",
+        "variant": "hybrid_concat19+512",
+        "dim": 531,
+        "hdb_ARI": 0.19074619984009653,
+        "hdb_K": 3,
+        "hdb_noise": 0.53125,
+        "oracleK_kmeans": 0.2704457397006591,
+        "oracleK_spectral": 0.25151079136690646,
+        "knn1": 0.70703125,
+        "cos_gap": 0.3520366959273815,
+        "n_bursts": 256,
+        "chance": 0.125
+      },
+      {
+        "regime": "DRFF_E1_mavicAir2",
+        "variant": "hybrid_pca64+19",
+        "dim": 83,
+        "hdb_ARI": 0.25908794788273615,
+        "hdb_K": 3,
+        "hdb_noise": 0.6796875,
+        "oracleK_kmeans": 0.25317960484073976,
+        "oracleK_spectral": 0.44575354779861326,
+        "knn1": 0.859375,
+        "cos_gap": 0.15331756696105003,
+        "n_bursts": 256,
+        "chance": 0.125
+      },
+      {
+        "regime": "DRFF_E1_mavicAir2",
+        "variant": "hybrid_5050_varwt",
+        "dim": 531,
+        "hdb_ARI": 0.14790838481100585,
+        "hdb_K": 2,
+        "hdb_noise": 0.4140625,
+        "oracleK_kmeans": 0.29795208064210593,
+        "oracleK_spectral": 0.30093189318800134,
+        "knn1": 0.734375,
+        "cos_gap": 0.363875199002536,
+        "n_bursts": 256,
+        "chance": 0.125
+      }
+    ],
+    "wisig_rows": [
+      {
+        "regime": "WiSig_P2_K18_seed201",
+        "variant": "classical_only",
+        "dim": 19,
+        "hdb_ARI": 0.005577391053731677,
+        "hdb_K": 2,
+        "hdb_noise": 0.48055555555555557,
+        "oracleK_kmeans": 0.06070735998479066,
+        "oracleK_spectral": 0.059409615873429286,
+        "knn1": 0.8736111111111111,
+        "cos_gap": 0.11417393432930112,
+        "n_bursts": 1440,
+        "chance": 0.05555555555555555
+      },
+      {
+        "regime": "WiSig_P2_K18_seed201",
+        "variant": "encoder_only",
+        "dim": 512,
+        "hdb_ARI": 0.6569212241627789,
+        "hdb_K": 15,
+        "hdb_noise": 0.12708333333333333,
+        "oracleK_kmeans": 0.7390124186117276,
+        "oracleK_spectral": 0.7359762133607818,
+        "knn1": 0.9888888888888889,
+        "cos_gap": 0.8737411946058273,
+        "n_bursts": 1440,
+        "chance": 0.05555555555555555
+      },
+      {
+        "regime": "WiSig_P2_K18_seed201",
+        "variant": "hybrid_concat19+512",
+        "dim": 531,
+        "hdb_ARI": 0.6553417243507587,
+        "hdb_K": 15,
+        "hdb_noise": 0.125,
+        "oracleK_kmeans": 0.7126181049981669,
+        "oracleK_spectral": 0.7232378496137916,
+        "knn1": 0.9895833333333334,
+        "cos_gap": 0.8450877815485001,
+        "n_bursts": 1440,
+        "chance": 0.05555555555555555
+      },
+      {
+        "regime": "WiSig_P2_K18_seed201",
+        "variant": "hybrid_pca64+19",
+        "dim": 83,
+        "hdb_ARI": 0.12266227490830131,
+        "hdb_K": 15,
+        "hdb_noise": 0.7333333333333333,
+        "oracleK_kmeans": 0.14715523567558367,
+        "oracleK_spectral": 0.17818725695912485,
+        "knn1": 0.9923611111111111,
+        "cos_gap": 0.19323335774242878,
+        "n_bursts": 1440,
+        "chance": 0.05555555555555555
+      },
+      {
+        "regime": "WiSig_P2_K18_seed201",
+        "variant": "hybrid_5050_varwt",
+        "dim": 531,
+        "hdb_ARI": 0.2827672664997111,
+        "hdb_K": 13,
+        "hdb_noise": 0.44722222222222224,
+        "oracleK_kmeans": 0.32652865530169217,
+        "oracleK_spectral": 0.3370947961971113,
+        "knn1": 0.9895833333333334,
+        "cos_gap": 0.48951810325854145,
+        "n_bursts": 1440,
+        "chance": 0.05555555555555555
+      }
+    ],
+    "best_hybrid_variant": "hybrid_pca64+19",
+    "best_hybrid_oracleK": 0.44575354779861326,
+    "classical_oracleK": 0.2683753895531925,
+    "encoder_oracleK": 0.25387150817439147,
+    "verdict": "COMPLEMENTARY: best hybrid (hybrid_pca64+19) oracle-K@8=0.446 > max(classical 0.268, encoder 0.254) -> a no-retrain constructive gain on DRFF single-rx.",
+    "wisig_indomain": "in-domain preserved: best hybrid oracle-K@18=0.723 vs encoder-only 0.739 (drop +0.016)"
+  },
+  "guardrails": "encoder+CosFace head FROZEN (no gradient); DEV WiSig + mavicAir2 OPT-B only; oracle-K=CEILING(true K); locked noise rule; no TEST/board-18, no M100; fixed battery (3 hybrid variants, no sweep).",
+  "params": {
+    "seed": 777,
+    "cap_fineness": 120,
+    "cap_wisig_hyb": 80,
+    "n_fine_slices": 5,
+    "K_fine": 8,
+    "K_wisig": 18,
+    "K_drff": 8,
+    "mcs_wisig": [
+      13,
+      15,
+      17
+    ],
+    "mcs_drff": [
+      5,
+      7
+    ]
+  }
+}

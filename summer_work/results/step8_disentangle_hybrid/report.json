@@ -1,0 +1,416 @@
+{
+  "task1": {
+    "hdbscan_grid": [
+      13,
+      15,
+      17
+    ],
+    "rows": [
+      {
+        "row": "same_board20_K13",
+        "proto": "P1",
+        "K": 13,
+        "n_dev": 13,
+        "hdb_mean": 0.678,
+        "hdb_per": {
+          "13": 0.672,
+          "15": 0.67,
+          "17": 0.692
+        },
+        "oracleK_km": 0.736,
+        "oracleK_sp": 0.288,
+        "knn1": 0.994,
+        "gap": 0.476,
+        "n_bursts": 3120,
+        "K_est_mid": 15
+      },
+      {
+        "row": "same_board20_K13",
+        "proto": "P2",
+        "K": 13,
+        "n_dev": 13,
+        "hdb_mean": 0.519,
+        "hdb_per": {
+          "13": 0.516,
+          "15": 0.489,
+          "17": 0.552
+        },
+        "oracleK_km": 0.781,
+        "oracleK_sp": 0.147,
+        "knn1": 0.988,
+        "gap": 0.469,
+        "n_bursts": 3120,
+        "K_est_mid": 46
+      },
+      {
+        "row": "mixed_board_K13",
+        "proto": "P1",
+        "K": 13,
+        "n_dev": 13,
+        "hdb_mean": 0.736,
+        "oracleK_km": 0.854,
+        "oracleK_sp": 0.314,
+        "knn1": 0.997,
+        "gap": 0.511,
+        "hdb_std": 0.023,
+        "km_std": 0.07
+      },
+      {
+        "row": "mixed_board_K13",
+        "proto": "P2",
+        "K": 13,
+        "n_dev": 13,
+        "hdb_mean": 0.617,
+        "oracleK_km": 0.734,
+        "oracleK_sp": 0.344,
+        "knn1": 0.994,
+        "gap": 0.488,
+        "hdb_std": 0.019,
+        "km_std": 0.043
+      },
+      {
+        "row": "same_board20_K8",
+        "proto": "P1",
+        "K": 8,
+        "n_dev": 8,
+        "hdb_mean": 0.679,
+        "oracleK_km": 0.823,
+        "oracleK_sp": 0.297,
+        "knn1": 0.994,
+        "gap": null
+      },
+      {
+        "row": "same_board20_K8",
+        "proto": "P2",
+        "K": 8,
+        "n_dev": 8,
+        "hdb_mean": 0.532,
+        "oracleK_km": 0.754,
+        "oracleK_sp": 0.261,
+        "knn1": 0.992,
+        "gap": null
+      }
+    ],
+    "mixed_summary": {
+      "P1": {
+        "hdb_mean": [
+          0.736,
+          0.023
+        ],
+        "oracleK_km": [
+          0.854,
+          0.07
+        ],
+        "oracleK_sp": [
+          0.314,
+          0.067
+        ],
+        "knn1": [
+          0.997,
+          0.001
+        ],
+        "gap": [
+          0.511,
+          0.035
+        ]
+      },
+      "P2": {
+        "hdb_mean": [
+          0.617,
+          0.019
+        ],
+        "oracleK_km": [
+          0.734,
+          0.043
+        ],
+        "oracleK_sp": [
+          0.344,
+          0.143
+        ],
+        "knn1": [
+          0.994,
+          0.002
+        ],
+        "gap": [
+          0.488,
+          0.034
+        ]
+      }
+    },
+    "verdict": "BOARD-18 IDIOSYNCRATIC: same-board K13 km=0.781 ~= mixed K13 0.734 and both high; same-board K8->K13 0.754->0.781 stays high -> TEST is a hard single-batch instance, not K-scaling.",
+    "note": "same-board = ALL 13 board-20 DEV devices (one slice); mixed = 3x scatter_slice(13) over boards 4/5/16/20 (seeds 501-503); K8 = 2 draws of 8-of-13 board-20 (seeds 511-512). Head-free 512-D."
+  },
+  "task2": {
+    "H1_pca": {
+      "fit_airframes": [
+        "mavic3_1",
+        "mavic3C_1",
+        "mavic3S_1",
+        "mini3pro_1",
+        "mini3pro_2",
+        "mini4PRO_1",
+        "mini4PRO_2",
+        "mini5PRO_1"
+      ],
+      "excluded": "mavicAir2 + mavicAir2s (never fit on eval/tune sets)",
+      "n_fit_windows": 2560,
+      "explained_var": 0.9935298562049866,
+      "fit_source": "build_drff(PCA_FIT_AF, seed 777) frozen 512-D features"
+    },
+    "H2_tuning": {
+      "tuning_set": "mavicAir2s (7)",
+      "alpha_grid": [
+        0.2,
+        0.35,
+        0.5,
+        0.65,
+        0.8
+      ],
+      "variants": [
+        "Ea=raw512",
+        "Eb=PCA64"
+      ],
+      "selection": "HDBSCAN(mean) primary, oracle-K@7 km secondary, among non-disqualified",
+      "condition_control": "disqualify if oracle-kmeans@7 ARI vs distance-D > ARI vs airframe",
+      "rows": [
+        {
+          "variant": "Ea",
+          "alpha": 0.2,
+          "hdb_mean": 0.259,
+          "oracleK_km": 0.341,
+          "oracleK_sp": 0.34,
+          "ctrl_ari_airframe": 0.341,
+          "ctrl_ari_distanceD": 0.135,
+          "disqualified": false
+        },
+        {
+          "variant": "Ea",
+          "alpha": 0.35,
+          "hdb_mean": 0.258,
+          "oracleK_km": 0.433,
+          "oracleK_sp": 0.461,
+          "ctrl_ari_airframe": 0.433,
+          "ctrl_ari_distanceD": 0.235,
+          "disqualified": false
+        },
+        {
+          "variant": "Ea",
+          "alpha": 0.5,
+          "hdb_mean": 0.264,
+          "oracleK_km": 0.487,
+          "oracleK_sp": 0.571,
+          "ctrl_ari_airframe": 0.487,
+          "ctrl_ari_distanceD": 0.216,
+          "disqualified": false
+        },
+        {
+          "variant": "Ea",
+          "alpha": 0.65,
+          "hdb_mean": 0.268,
+          "oracleK_km": 0.554,
+          "oracleK_sp": 0.564,
+          "ctrl_ari_airframe": 0.554,
+          "ctrl_ari_distanceD": 0.242,
+          "disqualified": false
+        },
+        {
+          "variant": "Ea",
+          "alpha": 0.8,
+          "hdb_mean": 0.411,
+          "oracleK_km": 0.537,
+          "oracleK_sp": 0.625,
+          "ctrl_ari_airframe": 0.537,
+          "ctrl_ari_distanceD": 0.238,
+          "disqualified": false
+        },
+        {
+          "variant": "Eb",
+          "alpha": 0.2,
+          "hdb_mean": 0.256,
+          "oracleK_km": 0.331,
+          "oracleK_sp": 0.337,
+          "ctrl_ari_airframe": 0.331,
+          "ctrl_ari_distanceD": 0.201,
+          "disqualified": false
+        },
+        {
+          "variant": "Eb",
+          "alpha": 0.35,
+          "hdb_mean": 0.265,
+          "oracleK_km": 0.448,
+          "oracleK_sp": 0.475,
+          "ctrl_ari_airframe": 0.448,
+          "ctrl_ari_distanceD": 0.197,
+          "disqualified": false
+        },
+        {
+          "variant": "Eb",
+          "alpha": 0.5,
+          "hdb_mean": 0.265,
+          "oracleK_km": 0.636,
+          "oracleK_sp": 0.669,
+          "ctrl_ari_airframe": 0.636,
+          "ctrl_ari_distanceD": 0.324,
+          "disqualified": false
+        },
+        {
+          "variant": "Eb",
+          "alpha": 0.65,
+          "hdb_mean": 0.509,
+          "oracleK_km": 0.786,
+          "oracleK_sp": 0.797,
+          "ctrl_ari_airframe": 0.786,
+          "ctrl_ari_distanceD": 0.32,
+          "disqualified": false
+        },
+        {
+          "variant": "Eb",
+          "alpha": 0.8,
+          "hdb_mean": 0.511,
+          "oracleK_km": 0.806,
+          "oracleK_sp": 0.803,
+          "ctrl_ari_airframe": 0.806,
+          "ctrl_ari_distanceD": 0.322,
+          "disqualified": false
+        }
+      ],
+      "frozen_variant": "Eb",
+      "frozen_alpha": 0.8,
+      "selected_at": "2026-07-10T15:45:16",
+      "selected_before_eval": true
+    },
+    "H3_mavicAir2": {
+      "frozen": [
+        "Eb",
+        0.8
+      ],
+      "rows": [
+        {
+          "method": "hybrid-weighted(Eb,a0.8)",
+          "protocol": "E1",
+          "HDBSCAN_mean_ARI": 0.197,
+          "oracleK8_kmeans": 0.371,
+          "oracleK8_spectral": 0.36,
+          "kNN1": 0.777,
+          "gap": 0.384,
+          "n_bursts": 256
+        },
+        {
+          "method": "hybrid-weighted(Eb,a0.8)",
+          "protocol": "E0",
+          "HDBSCAN_mean_ARI": 0.049,
+          "oracleK8_kmeans": 0.081,
+          "oracleK8_spectral": 0.096,
+          "kNN1": 0.729,
+          "gap": 0.071,
+          "n_bursts": 144
+        }
+      ],
+      "existing_rows": [
+        {
+          "method": "frozen-512",
+          "protocol": "E0",
+          "HDBSCAN_mean_ARI": 0.019,
+          "oracleK8_kmeans": 0.055,
+          "oracleK8_spectral": 0.078,
+          "kNN1": 0.59,
+          "gap": 0.02,
+          "n_bursts": 144
+        },
+        {
+          "method": "frozen-512",
+          "protocol": "E1",
+          "HDBSCAN_mean_ARI": 0.071,
+          "oracleK8_kmeans": 0.297,
+          "oracleK8_spectral": 0.298,
+          "kNN1": 0.672,
+          "gap": 0.045,
+          "n_bursts": 256
+        },
+        {
+          "method": "classical-19",
+          "protocol": "E0",
+          "HDBSCAN_mean_ARI": 0.003,
+          "oracleK8_kmeans": 0.032,
+          "oracleK8_spectral": 0.062,
+          "kNN1": 0.681,
+          "gap": 0.047,
+          "n_bursts": 144
+        },
+        {
+          "method": "classical-19",
+          "protocol": "E1",
+          "HDBSCAN_mean_ARI": 0.245,
+          "oracleK8_kmeans": 0.285,
+          "oracleK8_spectral": 0.299,
+          "kNN1": 0.613,
+          "gap": 0.493,
+          "n_bursts": 256
+        },
+        {
+          "method": "hybrid-pca64+19",
+          "protocol": "E0",
+          "HDBSCAN_mean_ARI": 0.048,
+          "oracleK8_kmeans": 0.121,
+          "oracleK8_spectral": 0.076,
+          "kNN1": 0.722,
+          "gap": 0.08,
+          "n_bursts": 144
+        },
+        {
+          "method": "hybrid-pca64+19",
+          "protocol": "E1",
+          "HDBSCAN_mean_ARI": 0.206,
+          "oracleK8_kmeans": 0.415,
+          "oracleK8_spectral": 0.541,
+          "kNN1": 0.84,
+          "gap": 0.16,
+          "n_bursts": 256
+        },
+        {
+          "method": "adapted-R1",
+          "protocol": "E1",
+          "HDBSCAN_mean_ARI": 0.043,
+          "oracleK8_kmeans": 0.331,
+          "oracleK8_spectral": 0.315,
+          "kNN1": 0.707,
+          "gap": 0.06,
+          "n_bursts": 256
+        }
+      ],
+      "in_domain": {
+        "encoder": {
+          "hdb_mean": 0.609,
+          "hdb_per": {
+            "13": 0.588,
+            "15": 0.618,
+            "17": 0.62
+          },
+          "oracleK_km": 0.675,
+          "oracleK_sp": 0.231,
+          "knn1": 0.991,
+          "gap": 0.536,
+          "n_bursts": 3120,
+          "K_est_mid": 16
+        },
+        "hybrid": {
+          "hdb_mean": 0.438,
+          "hdb_per": {
+            "13": 0.426,
+            "15": 0.426,
+            "17": 0.462
+          },
+          "oracleK_km": 0.652,
+          "oracleK_sp": 0.162,
+          "knn1": 0.996,
+          "gap": 0.871,
+          "n_bursts": 3120,
+          "K_est_mid": 52
+        },
+        "verdict": "PRESERVES in-domain (encoder km 0.675 -> hybrid 0.652, drop +0.023)"
+      }
+    },
+    "H4_verdict": "WORSE: weighted hybrid mavicAir2 E1 HDBmean=0.197 (vs best existing 0.245, -0.048), oracle sp=0.36 (vs 0.541, -0.181), km=0.371. In-domain: PRESERVES in-domain (encoder km 0.675 -> hybrid 0.652, drop +0.023)."
+  },
+  "guardrails": "frozen encoder head-free; no gradient; locked harness (seed 777, km/sp separate, HDBSCAN mean over fixed mcs grid, locked noise); TEST/board-18 CLOSED; M100 untouched; mavicAir2 touched ONCE (Task 2); fixed 2-variant x 5-alpha grid, no expansion."
+}

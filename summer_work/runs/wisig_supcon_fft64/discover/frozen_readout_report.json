@@ -1,0 +1,66 @@
+{
+  "config": {
+    "win_budget": 2400,
+    "burst_n": 10,
+    "mcs": 15,
+    "readout_per_dev": 1200,
+    "rand_seed": 123
+  },
+  "random_slice": [
+    "16-1",
+    "16-19",
+    "16-20",
+    "16-5",
+    "18-11",
+    "18-16",
+    "18-20",
+    "18-7",
+    "20-1",
+    "20-14",
+    "20-4",
+    "4-1",
+    "4-10",
+    "4-11",
+    "5-1",
+    "5-16",
+    "5-20",
+    "5-5"
+  ],
+  "readout": {
+    "lr_512": 0.8891203703703704,
+    "lr_128": 0.7766203703703703,
+    "mlp_512": 0.9222221970558167,
+    "mlp_128": 0.7638888955116272,
+    "burst512_lr": 0.9641203703703703
+  },
+  "discovery": {
+    "d128_renorm": {
+      "ARI": 0.5404687731045668,
+      "NMI": 0.8044963868368707,
+      "purity": 0.48194444444444445,
+      "K_est": 16,
+      "K_true": 18,
+      "noise": 0.17037037037037037,
+      "n_pts": 4320
+    },
+    "d512_l2norm": {
+      "ARI": 0.45111883853208756,
+      "NMI": 0.7970664237902348,
+      "purity": 0.4613425925925926,
+      "K_est": 14,
+      "K_true": 18,
+      "noise": 0.10324074074074074,
+      "n_pts": 4320
+    },
+    "d512_raw": {
+      "ARI": 0.4511344733212228,
+      "NMI": 0.7983644336607609,
+      "purity": 0.4652777777777778,
+      "K_est": 14,
+      "K_true": 18,
+      "noise": 0.09791666666666667,
+      "n_pts": 4320
+    }
+  },
+  "verdict": "Diagnosis A (CHEAP): frozen 512-D readout separates the UNSEEN 18 at 0.922>0.80 -> open-set-generalizable fingerprint IS in the representation. PROJECTION HEAD destroys structure: 512-D 0.922 >> 128-D 0.777 (-0.146). CHEAPEST fix = cluster/retrain on pre-proj features. BUT unsupervised clustering of 512-D does NOT auto-improve ARI (0.451) even though a SUPERVISED readout does -> the generalizable info needs a LEARNED projection to become cluster-friendly (cheap retrain of head), not raw 512-D clustering."
+}

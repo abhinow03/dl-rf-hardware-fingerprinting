@@ -1,0 +1,50 @@
+[
+  {
+    "opt": "A",
+    "group": "mavicAir2",
+    "n_af": 8,
+    "excluded": "",
+    "chance": 0.125,
+    "logreg_win": 0.19816272965879264,
+    "logreg_burst": 0.3333333333333333,
+    "mlp_win": 0.15354330708661418,
+    "mlp_burst": 0.2,
+    "per_af": 320
+  },
+  {
+    "opt": "A",
+    "group": "mavicAir2s",
+    "n_af": 5,
+    "excluded": "mavicAir2s_4;mavicAir2s_5",
+    "chance": 0.2,
+    "logreg_win": 0.4848920863309353,
+    "logreg_burst": 0.5,
+    "mlp_win": 0.5453237410071943,
+    "mlp_burst": 0.6666666666666666,
+    "per_af": 320
+  },
+  {
+    "opt": "B",
+    "group": "mavicAir2",
+    "n_af": 8,
+    "excluded": "",
+    "chance": 0.125,
+    "logreg_win": 0.3031496062992126,
+    "logreg_burst": 0.6,
+    "mlp_win": 0.32020997375328086,
+    "mlp_burst": 0.6,
+    "per_af": 320
+  },
+  {
+    "opt": "B",
+    "group": "mavicAir2s",
+    "n_af": 5,
+    "excluded": "mavicAir2s_4;mavicAir2s_5",
+    "chance": 0.2,
+    "logreg_win": 0.6330935251798561,
+    "logreg_burst": 0.6666666666666666,
+    "mlp_win": 0.6676258992805756,
+    "mlp_burst": 0.8333333333333334,
+    "per_af": 320
+  }
+]

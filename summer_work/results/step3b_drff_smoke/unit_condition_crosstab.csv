@@ -1,0 +1,16 @@
+group,airframe,conditions
+mavicAir2,mavicAir2_1,d1/c2:50;d1/c3:24;d2/c1:54;d2/c2:12;d2/c3:84;d3/c2:60;d3/c3:36
+mavicAir2,mavicAir2_2,d1/c1:73;d1/c2:12;d1/c3:48;d2/c1:19;d2/c2:24;d2/c3:24;d3/c2:60;d3/c3:60
+mavicAir2,mavicAir2_3,d1/c2:88;d2/c1:16;d2/c2:60;d2/c3:48;d3/c1:24;d3/c2:24;d3/c3:60
+mavicAir2,mavicAir2_4,d1/c1:68;d1/c3:252
+mavicAir2,mavicAir2_5,d1/c1:14;d1/c2:166;d1/c3:140
+mavicAir2,mavicAir2_6,d1/c1:143;d1/c2:72;d1/c3:105
+mavicAir2,mavicAir2_7,d1/c2:220;d1/c3:100
+mavicAir2,mavicAir2_8,d1/c1:102;d1/c2:146;d1/c3:72
+mavicAir2s,mavicAir2s_1,d1/c3:9;d2/c1:65;d2/c2:103;d3/c2:27
+mavicAir2s,mavicAir2s_2,d1/c3:19;d3/c2:119;d3/c3:66
+mavicAir2s,mavicAir2s_3,d2/c1:66;d3/c2:138
+mavicAir2s,mavicAir2s_4,d1/c3:204
+mavicAir2s,mavicAir2s_5,d1/c3:204
+mavicAir2s,mavicAir2s_6,d1/c2:97;d1/c3:107
+mavicAir2s,mavicAir2s_7,d1/c2:67;d1/c3:137

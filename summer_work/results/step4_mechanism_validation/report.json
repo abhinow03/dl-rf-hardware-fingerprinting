@@ -1,0 +1,268 @@
+{
+  "control1_wisig": [
+    {
+      "proto": "P0",
+      "emb": "512D",
+      "hdb_ARI": 0.5582367093789313,
+      "hdb_ARI_std": 0.04950469148796645,
+      "oracleK_kmeans18": 0.7000100019717987,
+      "oracleK_spectral18": 0.6878554512303797,
+      "knn1": 0.9636111111111111,
+      "knn5": 0.9079074074074074,
+      "intra_cos": 0.9340627908706665,
+      "inter_cos": 0.46990643739700316,
+      "cos_gap": 0.46415635347366335,
+      "hdb_K": 14.0,
+      "hdb_noise": 0.17175925925925928,
+      "chance": 0.05555555555555555
+    },
+    {
+      "proto": "P0",
+      "emb": "CosFace",
+      "hdb_ARI": 0.4014761087674404,
+      "hdb_ARI_std": 0.033085690329166556,
+      "oracleK_kmeans18": 0.6412642745079269,
+      "oracleK_spectral18": 0.5937861319144271,
+      "knn1": 0.9907407407407407,
+      "knn5": 0.9442592592592594,
+      "intra_cos": 0.43011791706085206,
+      "inter_cos": 0.020740702003240585,
+      "cos_gap": 0.4093772150576115,
+      "hdb_K": 16.6,
+      "hdb_noise": 0.49027777777777776,
+      "chance": 0.05555555555555555
+    },
+    {
+      "proto": "P0",
+      "emb": "Classical",
+      "hdb_ARI": 0.016659888378447552,
+      "hdb_ARI_std": 0.006714317374021418,
+      "oracleK_kmeans18": 0.042727868582392234,
+      "oracleK_spectral18": 0.03923524904702311,
+      "knn1": 0.8293518518518518,
+      "knn5": 0.5599444444444444,
+      "intra_cos": 0.09735874384641648,
+      "inter_cos": 0.002914893045090139,
+      "cos_gap": 0.09444385080132633,
+      "hdb_K": 6.2,
+      "hdb_noise": 0.6483333333333332,
+      "chance": 0.05555555555555555
+    },
+    {
+      "proto": "P1",
+      "emb": "512D",
+      "hdb_ARI": 0.7297307348786489,
+      "hdb_ARI_std": 0.03843444608024162,
+      "oracleK_kmeans18": 0.8313476151726833,
+      "oracleK_spectral18": 0.314274033283072,
+      "knn1": 0.9812037037037037,
+      "knn5": 0.9727037037037036,
+      "intra_cos": 0.9828378915786743,
+      "inter_cos": 0.49271929264068604,
+      "cos_gap": 0.49011859893798826,
+      "hdb_K": 15.2,
+      "hdb_noise": 0.014444444444444444,
+      "chance": 0.05555555555555555
+    },
+    {
+      "proto": "P1",
+      "emb": "CosFace",
+      "hdb_ARI": 0.7537077363276846,
+      "hdb_ARI_std": 0.028512436820097176,
+      "oracleK_kmeans18": 0.8896387151846025,
+      "oracleK_spectral18": 0.17711788695063602,
+      "knn1": 0.994537037037037,
+      "knn5": 0.9912407407407408,
+      "intra_cos": 0.7998128056526184,
+      "inter_cos": 0.03341135308146477,
+      "cos_gap": 0.7664014525711537,
+      "hdb_K": 15.6,
+      "hdb_noise": 0.0037037037037037034,
+      "chance": 0.05555555555555555
+    },
+    {
+      "proto": "P1",
+      "emb": "Classical",
+      "hdb_ARI": 0.1374112626472605,
+      "hdb_ARI_std": 0.022122392226062063,
+      "oracleK_kmeans18": 0.2558576257720734,
+      "oracleK_spectral18": 0.2667456608846337,
+      "knn1": 0.6709259259259259,
+      "knn5": 0.6002962962962963,
+      "intra_cos": 0.4875592827796936,
+      "inter_cos": -0.020976619236171244,
+      "cos_gap": 0.5085359020158648,
+      "hdb_K": 4.2,
+      "hdb_noise": 0.7144444444444444,
+      "chance": 0.05555555555555555
+    },
+    {
+      "proto": "P2",
+      "emb": "512D",
+      "hdb_ARI": 0.5992804892314152,
+      "hdb_ARI_std": 0.08337363482105659,
+      "oracleK_kmeans18": 0.720603406025308,
+      "oracleK_spectral18": 0.6675551172311007,
+      "knn1": 0.9863888888888889,
+      "knn5": 0.967611111111111,
+      "intra_cos": 0.9515372395515442,
+      "inter_cos": 0.4809642553329468,
+      "cos_gap": 0.4705729842185974,
+      "hdb_K": 13.6,
+      "hdb_noise": 0.07425925925925927,
+      "chance": 0.05555555555555555
+    },
+    {
+      "proto": "P2",
+      "emb": "CosFace",
+      "hdb_ARI": 0.4452113704008269,
+      "hdb_ARI_std": 0.05603884638080365,
+      "oracleK_kmeans18": 0.6856787915692062,
+      "oracleK_spectral18": 0.5890850108986039,
+      "knn1": 0.9991666666666668,
+      "knn5": 0.9964074074074075,
+      "intra_cos": 0.5261073589324952,
+      "inter_cos": 0.02615450359880924,
+      "cos_gap": 0.4999528553336859,
+      "hdb_K": 20.6,
+      "hdb_noise": 0.40777777777777774,
+      "chance": 0.05555555555555555
+    },
+    {
+      "proto": "P2",
+      "emb": "Classical",
+      "hdb_ARI": 0.04241859564623502,
+      "hdb_ARI_std": 0.004646929154580326,
+      "oracleK_kmeans18": 0.06870164688478701,
+      "oracleK_spectral18": 0.052824576318410574,
+      "knn1": 0.9383333333333332,
+      "knn5": 0.8553703703703703,
+      "intra_cos": 0.12334213852882385,
+      "inter_cos": 0.002912860200740397,
+      "cos_gap": 0.12042927832808345,
+      "hdb_K": 24.4,
+      "hdb_noise": 0.6380555555555555,
+      "chance": 0.05555555555555555
+    }
+  ],
+  "control2_drff_classical": [
+    {
+      "regime": "DRFF_E0",
+      "emb": "Classical",
+      "hdb_ARI": 0.008331285251634058,
+      "oracleK_kmeans8": 0.04676414281936474,
+      "oracleK_spectral8": 0.04683582567257597,
+      "knn1": 0.5263157894736842,
+      "cos_gap": 0.06893463060259819,
+      "hdb_K": 4,
+      "hdb_noise": 0.013157894736842105,
+      "n_bursts": 152,
+      "chance": 0.125
+    },
+    {
+      "regime": "DRFF_E1",
+      "emb": "Classical",
+      "hdb_ARI": 0.24718837046759035,
+      "oracleK_kmeans8": 0.3116761528937732,
+      "oracleK_spectral8": 0.2936562016985491,
+      "knn1": 0.66796875,
+      "cos_gap": 0.4146691858768463,
+      "hdb_K": 3,
+      "hdb_noise": 0.53125,
+      "n_bursts": 256,
+      "chance": 0.125
+    }
+  ],
+  "mechanism_table": [
+    {
+      "regime": "WiSig P1 (multi-rx)",
+      "receiver_diversity": "YES (10 rx)",
+      "enc_hdbscan": 0.73,
+      "enc_oracleK": 0.831,
+      "cls_hdbscan": 0.137,
+      "cls_oracleK": 0.267,
+      "knn1": 0.981,
+      "gap": 0.49,
+      "prov": "512D/classical: this session (Control 1)"
+    },
+    {
+      "regime": "WiSig P2 (single-rx,multi-date)",
+      "receiver_diversity": "NO (1 rx, 4 dates)",
+      "enc_hdbscan": 0.599,
+      "enc_oracleK": 0.721,
+      "cls_hdbscan": 0.042,
+      "cls_oracleK": 0.069,
+      "knn1": 0.986,
+      "gap": 0.471,
+      "prov": "512D/classical: this session (Control 1)"
+    },
+    {
+      "regime": "M100 (single-rx, cross-domain)",
+      "receiver_diversity": "NO (1 rx)",
+      "enc_hdbscan": 0.002,
+      "enc_oracleK": "n/a",
+      "cls_hdbscan": "n/a",
+      "cls_oracleK": "n/a",
+      "knn1": "n/a",
+      "gap": "n/a",
+      "prov": "enc_hdbscan: results/step3_m100_smoke/discovery_decoherence.csv (D1 512D best ~0.002); rest n/a (M100 not reprocessed)"
+    },
+    {
+      "regime": "DRFF E0 (single-rx, coherent)",
+      "receiver_diversity": "NO (1 rx)",
+      "enc_hdbscan": 0.036,
+      "enc_oracleK": "n/a",
+      "cls_hdbscan": 0.008,
+      "cls_oracleK": 0.047,
+      "knn1": 0.513,
+      "gap": 0.012,
+      "prov": "enc: results/step3c_discovery_gap/discovery_gap_report.json (E0 512D); classical: this session (Control 2)"
+    },
+    {
+      "regime": "DRFF E1 (single-rx, multi-cond)",
+      "receiver_diversity": "NO (1 rx)",
+      "enc_hdbscan": 0.075,
+      "enc_oracleK": 0.218,
+      "cls_hdbscan": 0.247,
+      "cls_oracleK": 0.312,
+      "knn1": 0.513,
+      "gap": 0.012,
+      "prov": "enc: results/step3c_discovery_gap/discovery_gap_report.json (E1 512D, oracle-K ceiling); classical: this session (Control 2)"
+    }
+  ],
+  "cosface_contrast": {
+    "P1_hdb": 0.7537077363276846,
+    "P2_hdb": 0.4452113704008269
+  },
+  "G1_receiver_vs_domain": "DOMAIN-GAP: P2 single-rx within-domain oracle-K=0.721 HIGH -> DRFF wall is substantially domain-gap, not receiver-diversity. REWRITE the sentence.",
+  "G2_method_independence": "UNINFORMATIVE/mixed: classical DRFF oracle=0.312, P2=0.069, P1=0.256.",
+  "sentence_verdict": "WRONG / must be rewritten: within-domain single-rx clusters given true K -> the DRFF wall is domain-gap.",
+  "params": {
+    "slice_seeds": [
+      201,
+      202,
+      203,
+      204,
+      205
+    ],
+    "cap_bursts": 120,
+    "K_wisig": 18,
+    "K_drff": 8,
+    "classical_dims": 19,
+    "mcs_wisig": [
+      13,
+      15,
+      17
+    ],
+    "mcs_drff": [
+      5,
+      7
+    ]
+  },
+  "provenance": {
+    "step2b": "results/step2b_decoherence/full_grid.csv",
+    "step3c": "results/step3c_discovery_gap/discovery_gap_report.json",
+    "step3_m100": "results/step3_m100_smoke/discovery_decoherence.csv"
+  },
+  "guardrails": "encoder+head frozen; oracle-K=ceiling(true K); DEV WiSig + mavicAir2 OPT-B; no TEST/board-18; no M100 reprocessing; no scaling; locked noise rule"
+}

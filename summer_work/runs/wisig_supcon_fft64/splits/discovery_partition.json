@@ -1,0 +1,69 @@
+{
+  "source_split": "runs/wisig_supcon_fft64/splits/split_manytx.json",
+  "discover_pool_size": 41,
+  "seed": 777,
+  "mode": "board-disjoint",
+  "selection_rule": "shuffle 5 discover boards by np.random.default_rng(777); accumulate whole boards into DEV until DEV>=ceil(0.60*41)=25; remainder->TEST",
+  "dev_boards": [
+    "4",
+    "5",
+    "16",
+    "20"
+  ],
+  "test_boards": [
+    "18"
+  ],
+  "n_dev": 25,
+  "n_test": 16,
+  "dev_tx": [
+    "16-1",
+    "16-16",
+    "16-19",
+    "16-20",
+    "16-5",
+    "20-1",
+    "20-12",
+    "20-14",
+    "20-15",
+    "20-16",
+    "20-18",
+    "20-19",
+    "20-20",
+    "20-3",
+    "20-4",
+    "20-5",
+    "20-7",
+    "20-8",
+    "4-1",
+    "4-10",
+    "4-11",
+    "5-1",
+    "5-16",
+    "5-20",
+    "5-5"
+  ],
+  "test_tx": [
+    "18-1",
+    "18-10",
+    "18-11",
+    "18-12",
+    "18-13",
+    "18-14",
+    "18-15",
+    "18-16",
+    "18-17",
+    "18-2",
+    "18-20",
+    "18-4",
+    "18-5",
+    "18-7",
+    "18-8",
+    "18-9"
+  ],
+  "invariants": {
+    "board_disjoint_dev_test": true,
+    "disjoint_from_train": true,
+    "test_ge_15": true
+  },
+  "note": "DEV = ALL future tuning (draw slices only from dev_tx). TEST = touched once, frozen hyperparams. Board 18 (test) was present in the already-spent seed-123 tuning slice; prior locked numbers must be re-derived on DEV-only before the one-touch TEST eval."
+}

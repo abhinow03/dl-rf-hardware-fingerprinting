@@ -1,0 +1,7 @@
+fix,ARI,note
+baseline_L2_HDBSCAN,0.07452221044052063,K=2
+L2_whiten_HDBSCAN,0.0878680706549438,per-dim standardize
+WiSigLDA_HDBSCAN,0.08617853804418374,"LDA fit on 109 train dev, dims=108"
+ORACLE_kmeans@8_Ebest,0.1874897988260257,"ceiling, true K"
+ORACLE_spectral@8_Ebest,0.2099784775423403,"ceiling, true K"
+ORACLE_kmeans@8_WiSigLDA,0.21753722469631484,"ceiling, true K"

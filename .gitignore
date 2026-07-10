@@ -3,6 +3,7 @@ __pycache__/
 *.pt
 *.pth
 *.npy
+*.npz
 *.pkl
 *.zip
 *.sigmf-data

@@ -1,0 +1,51 @@
+loaded 142113 signals, 41 tx, 5 boards [np.str_('4'), np.str_('5'), np.str_('16'), np.str_('18'), np.str_('20')]
+running HDBSCAN sweep (label-independent, cached after)...
+  min_cs=10 done (615s)
+  min_cs=15 done (631s)
+  min_cs=20 done (635s)
+  min_cs=25 done (639s)
+  min_cs=30 done (641s)
+
+=== PART 1 — BOARD-LEVEL (true K=5) ===
+min_cs  K_est  |K-true|  noise% |    ARI    NMI      V  purity  (noise EXCLUDED)
+    10     84        79   19.7% |  0.224  0.357  0.357   0.717
+    15     61        56   29.2% |  0.235  0.383  0.383   0.734
+    20     29        24   13.5% |  0.179  0.326  0.326   0.643
+    25     40        35   24.8% |  0.238  0.377  0.377   0.738
+    30     24        19   13.4% |  0.178  0.326  0.326   0.642
+  greedy: K=19 (true 5) ARI=0.145 NMI=0.281 V=0.281 purity=0.655
+
+  merge @ cos>0.95: 41 tx -> 21 separable identities
+
+=== PART 2 — MERGED IDENTITY (cos>0.95) (true K=21) ===
+min_cs  K_est  |K-true|  noise% |    ARI    NMI      V  purity  (noise EXCLUDED)
+    10     84        63   19.7% |  0.771  0.796  0.796   0.767
+    15     61        40   29.2% |  0.678  0.793  0.793   0.743
+    20     29         8   13.5% |  0.540  0.722  0.722   0.660
+    25     40        19   24.8% |  0.780  0.826  0.826   0.776
+    30     24         3   13.4% |  0.538  0.723  0.723   0.659
+  greedy: K=19 (true 21) ARI=0.564 NMI=0.682 V=0.682 purity=0.696
+
+  merge @ cos>0.99: 41 tx -> 34 separable identities
+
+=== PART 2 — MERGED IDENTITY (cos>0.99) (true K=34) ===
+min_cs  K_est  |K-true|  noise% |    ARI    NMI      V  purity  (noise EXCLUDED)
+    10     84        50   19.7% |  0.313  0.682  0.682   0.384
+    15     61        27   29.2% |  0.362  0.703  0.703   0.431
+    20     29         5   13.5% |  0.180  0.608  0.608   0.327
+    25     40         6   24.8% |  0.349  0.716  0.716   0.412
+    30     24        10   13.4% |  0.179  0.608  0.608   0.326
+  greedy: K=19 (true 34) ARI=0.338 NMI=0.620 V=0.620 purity=0.374
+
+=== PART 3 — per-source-board: distinct identities after merge ===
+board  n_tx  ids@0.95  ids@0.99
+    4     3         3         3
+    5     4         3         4
+   16     5         5         5
+   18    16         6        13
+   20    13        10        12
+  TOTAL distinct identities: 21 @0.95, 34 @0.99 (from 41 tx)
+
+saved -> /home/pw26_akp_01/CAPSTONE/DL_model/summer_work/runs/wisig_supcon_fft64/discover/rescore_report.json
+
+CHECKPOINT — re-scoring only, no retrain.

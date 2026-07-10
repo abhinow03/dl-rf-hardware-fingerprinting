@@ -1,0 +1,6 @@
+regime,receiver_diversity,enc_hdbscan,enc_oracleK,cls_hdbscan,cls_oracleK,knn1,gap,prov
+WiSig P1 (multi-rx),YES (10 rx),0.73,0.831,0.137,0.267,0.981,0.49,512D/classical: this session (Control 1)
+"WiSig P2 (single-rx,multi-date)","NO (1 rx, 4 dates)",0.599,0.721,0.042,0.069,0.986,0.471,512D/classical: this session (Control 1)
+"M100 (single-rx, cross-domain)",NO (1 rx),0.002,n/a,n/a,n/a,n/a,n/a,enc_hdbscan: results/step3_m100_smoke/discovery_decoherence.csv (D1 512D best ~0.002); rest n/a (M100 not reprocessed)
+"DRFF E0 (single-rx, coherent)",NO (1 rx),0.036,n/a,0.008,0.047,0.513,0.012,enc: results/step3c_discovery_gap/discovery_gap_report.json (E0 512D); classical: this session (Control 2)
+"DRFF E1 (single-rx, multi-cond)",NO (1 rx),0.075,0.218,0.247,0.312,0.513,0.012,"enc: results/step3c_discovery_gap/discovery_gap_report.json (E1 512D, oracle-K ceiling); classical: this session (Control 2)"

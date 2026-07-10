@@ -1,0 +1,135 @@
+{
+  "group": "mavicAir2",
+  "decimation": "OPT-B",
+  "ceiling_supervised": 0.6,
+  "test1_geometry": [
+    {
+      "emb": "512D",
+      "knn1": 0.5131578947368421,
+      "knn5": 0.3973684210526316,
+      "intra_cos": 0.8398016691207886,
+      "inter_cos": 0.8280633091926575,
+      "cos_gap": 0.011738359928131104,
+      "ARI_hdbscan": 0.03587104333723115,
+      "K": 6,
+      "noise": 0.1118421052631579
+    },
+    {
+      "emb": "CosFace",
+      "knn1": 0.4868421052631579,
+      "knn5": 0.37236842105263157,
+      "intra_cos": 0.8950814008712769,
+      "inter_cos": 0.8865255117416382,
+      "cos_gap": 0.008555889129638672,
+      "ARI_hdbscan": 0.0351590050212112,
+      "K": 5,
+      "noise": 0.24342105263157895
+    },
+    {
+      "emb": "128D",
+      "knn1": 0.4868421052631579,
+      "knn5": 0.3118421052631579,
+      "intra_cos": 0.7703343033790588,
+      "inter_cos": 0.7584050297737122,
+      "cos_gap": 0.01192927360534668,
+      "ARI_hdbscan": 0.02096056216027821,
+      "K": 4,
+      "noise": 0.11842105263157894
+    }
+  ],
+  "test2_E0E1": [
+    {
+      "emb": "512D",
+      "proto": "E0_coherent",
+      "n_bursts": 152,
+      "knn1": 0.5131578947368421,
+      "ARI": 0.03587104333723115,
+      "NMI": 0.25402325035898393,
+      "purity": 0.375,
+      "K_est": 6,
+      "noise": 0.1118421052631579
+    },
+    {
+      "emb": "512D",
+      "proto": "E1_multicond",
+      "n_bursts": 256,
+      "knn1": 0.56640625,
+      "ARI": 0.07452221044052063,
+      "NMI": 0.418551502564285,
+      "purity": 0.48828125,
+      "K_est": 2,
+      "noise": 0.33203125
+    },
+    {
+      "emb": "CosFace",
+      "proto": "E0_coherent",
+      "n_bursts": 152,
+      "knn1": 0.4868421052631579,
+      "ARI": 0.0351590050212112,
+      "NMI": 0.32392977816626967,
+      "purity": 0.46710526315789475,
+      "K_est": 5,
+      "noise": 0.24342105263157895
+    },
+    {
+      "emb": "CosFace",
+      "proto": "E1_multicond",
+      "n_bursts": 256,
+      "knn1": 0.7109375,
+      "ARI": 0.0,
+      "NMI": 0.5454545454545452,
+      "purity": 1.0,
+      "K_est": 0,
+      "noise": 1.0
+    }
+  ],
+  "e_best": {
+    "emb": "512D",
+    "proto": "E1_multicond",
+    "n_bursts": 256,
+    "knn1": 0.56640625,
+    "ARI": 0.07452221044052063,
+    "NMI": 0.418551502564285,
+    "purity": 0.48828125,
+    "K_est": 2,
+    "noise": 0.33203125
+  },
+  "test3_fixes": [
+    {
+      "fix": "baseline_L2_HDBSCAN",
+      "ARI": 0.07452221044052063,
+      "note": "K=2"
+    },
+    {
+      "fix": "L2_whiten_HDBSCAN",
+      "ARI": 0.0878680706549438,
+      "note": "per-dim standardize"
+    },
+    {
+      "fix": "WiSigLDA_HDBSCAN",
+      "ARI": 0.08617853804418374,
+      "note": "LDA fit on 109 train dev, dims=108"
+    },
+    {
+      "fix": "ORACLE_kmeans@8_Ebest",
+      "ARI": 0.1874897988260257,
+      "note": "ceiling, true K"
+    },
+    {
+      "fix": "ORACLE_spectral@8_Ebest",
+      "ARI": 0.2099784775423403,
+      "note": "ceiling, true K"
+    },
+    {
+      "fix": "ORACLE_kmeans@8_WiSigLDA",
+      "ARI": 0.21753722469631484,
+      "note": "ceiling, true K"
+    }
+  ],
+  "knn1_best": 0.5131578947368421,
+  "E0": 0.03587104333723115,
+  "E1": 0.07452221044052063,
+  "cheapfix_best": 0.0878680706549438,
+  "oracleK_best": 0.21753722469631484,
+  "V1": "WALL"
+}

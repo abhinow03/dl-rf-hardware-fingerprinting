@@ -1,0 +1,190 @@
+{
+  "question": "does light adaptation on 15 other drone airframes unlock open-set discovery of the 8 unseen mavicAir2 units?",
+  "data": {
+    "pool_airframes": [
+      "mavic3_1",
+      "mavic3C_1",
+      "mavic3S_1",
+      "mavicAir2s_1",
+      "mavicAir2s_2",
+      "mavicAir2s_3",
+      "mavicAir2s_4",
+      "mavicAir2s_5",
+      "mavicAir2s_6",
+      "mavicAir2s_7",
+      "mini3pro_1",
+      "mini3pro_2",
+      "mini4PRO_1",
+      "mini4PRO_2",
+      "mini5PRO_1"
+    ],
+    "eval_group": [
+      "mavicAir2_1",
+      "mavicAir2_2",
+      "mavicAir2_3",
+      "mavicAir2_4",
+      "mavicAir2_5",
+      "mavicAir2_6",
+      "mavicAir2_7",
+      "mavicAir2_8"
+    ],
+    "pool_windows": 25399,
+    "pool_train": 21585,
+    "pool_val": 3814,
+    "val_frac": 0.15,
+    "replay_devices": 109,
+    "replay_windows": 27250,
+    "trade_off": "mavicAir2s (x7) spent as adaptation data; adapted-discovery claim rests on mavicAir2 (8) alone \u2014 stated, not accidental."
+  },
+  "config": {
+    "seed": 1234,
+    "steps": 3000,
+    "ckpt_every": 500,
+    "warmup": 300,
+    "batch_total": 150,
+    "batch_drff": 105,
+    "batch_wisig": 45,
+    "tau": 0.5,
+    "lrs": {
+      "R1": 0.001,
+      "R2": 0.0001,
+      "R3": 5e-05
+    },
+    "replay_frac": 0.7,
+    "optimizer": "AdamW cosine warmup, grad-clip 1.0, AMP",
+    "trainable_params": {
+      "R1": 296960,
+      "R2": 830848,
+      "R3": 1490944
+    },
+    "recipes": {
+      "R1": "head-adapt: residual adapter 512->128->512 (zero-init) + proj head",
+      "R2": "partial: b4 each branch + cross_attn + norm + proj head",
+      "R3": "full unfreeze"
+    }
+  },
+  "best_checkpoints": {
+    "R1": {
+      "step": 1500,
+      "val_gap": 0.1014
+    },
+    "R2": {
+      "step": 1000,
+      "val_gap": 0.1126
+    },
+    "R3": {
+      "step": 500,
+      "val_gap": 0.1324
+    }
+  },
+  "combined_table": [
+    {
+      "recipe": "baseline",
+      "E1_HDBSCAN": 0.114,
+      "E1_oracleK8": 0.341,
+      "E1_oracleK8_km": 0.309,
+      "E1_oracleK8_sp": 0.341,
+      "E0_HDBSCAN": 0.023,
+      "E0_oracleK8": 0.094,
+      "kNN1": 0.555,
+      "kNN5": 0.498,
+      "gap": 0.046,
+      "probe_burst": 0.667,
+      "probe_win": 0.325,
+      "WiSig_retention_oracleK18": 0.746,
+      "WiSig_retention_HDBSCAN": 0.586,
+      "E1_nbursts": 256,
+      "E0_nbursts": 144,
+      "best_step": "",
+      "best_val_gap": ""
+    },
+    {
+      "recipe": "R1",
+      "E1_HDBSCAN": 0.128,
+      "E1_oracleK8": 0.329,
+      "E1_oracleK8_km": 0.256,
+      "E1_oracleK8_sp": 0.329,
+      "E0_HDBSCAN": 0.021,
+      "E0_oracleK8": 0.101,
+      "kNN1": 0.602,
+      "kNN5": 0.525,
+      "gap": 0.061,
+      "probe_burst": 0.6,
+      "probe_win": 0.327,
+      "WiSig_retention_oracleK18": 0.752,
+      "WiSig_retention_HDBSCAN": 0.575,
+      "E1_nbursts": 256,
+      "E0_nbursts": 144,
+      "best_step": 1500,
+      "best_val_gap": 0.1014
+    },
+    {
+      "recipe": "R2",
+      "E1_HDBSCAN": 0.118,
+      "E1_oracleK8": 0.237,
+      "E1_oracleK8_km": 0.176,
+      "E1_oracleK8_sp": 0.237,
+      "E0_HDBSCAN": 0.083,
+      "E0_oracleK8": 0.077,
+      "kNN1": 0.566,
+      "kNN5": 0.506,
+      "gap": 0.054,
+      "probe_burst": 0.6,
+      "probe_win": 0.306,
+      "WiSig_retention_oracleK18": 0.736,
+      "WiSig_retention_HDBSCAN": 0.54,
+      "E1_nbursts": 256,
+      "E0_nbursts": 144,
+      "best_step": 1000,
+      "best_val_gap": 0.1126
+    },
+    {
+      "recipe": "R3",
+      "E1_HDBSCAN": 0.105,
+      "E1_oracleK8": 0.216,
+      "E1_oracleK8_km": 0.182,
+      "E1_oracleK8_sp": 0.216,
+      "E0_HDBSCAN": 0.02,
+      "E0_oracleK8": 0.114,
+      "kNN1": 0.586,
+      "kNN5": 0.548,
+      "gap": 0.058,
+      "probe_burst": 0.667,
+      "probe_win": 0.286,
+      "WiSig_retention_oracleK18": 0.725,
+      "WiSig_retention_HDBSCAN": 0.531,
+      "E1_nbursts": 256,
+      "E0_nbursts": 144,
+      "best_step": 500,
+      "best_val_gap": 0.1324
+    }
+  ],
+  "retention": {
+    "bar": 0.65,
+    "per_recipe": {
+      "baseline": [
+        0.746,
+        "OK"
+      ],
+      "R1": [
+        0.752,
+        "OK"
+      ],
+      "R2": [
+        0.736,
+        "OK"
+      ],
+      "R3": [
+        0.725,
+        "OK"
+      ]
+    }
+  },
+  "gate": "FAIL: best recipe R1 mavicAir2 E1 oracle-K@8=0.329 (<0.35)",
+  "deployable_note": "HDBSCAN moved +0.014, oracle-K +-0.012",
+  "frozen_baseline": {
+    "E1_oracleK8": 0.341,
+    "E1_HDBSCAN": 0.114
+  },
+  "guardrails": "mavicAir2 quarantined (data/stats/stopping); best_model.pt never overwritten; fixed 3-recipe battery, no extra sweeps; replay mandatory R2/R3; oracle-K=CEILING; locked noise rule; TEST/board-18 + M100 untouched."
+}

@@ -39,6 +39,14 @@ only discriminator is hardware imperfection; then discover on same-model units.
 - Clustering = `sklearn.cluster.HDBSCAN` (do NOT build standalone hdbscan). Cluster on
   RAW 128-D L2-normalized embeddings. DBSCAN + agglomerative as comparisons. UMAP/t-SNE
   for VISUALIZATION ONLY — never cluster on reduced dims.
+- **DISCOVERY UNIT = BURST-MEAN (LOCKED, 2026-07-02).** Cluster on **burst-mean embeddings**:
+  N *consecutive* windows (device-blind — consecutive capture order, NOT grouped by label),
+  mean-pooled then L2-renormalized — NOT single windows. Banked win on the random seed-123
+  slice: ARI 0.44 (single-window) → 0.54 at N=10. Deployment number ≈ **10–20 packets/decision**
+  (intra-cos rises monotonically with N; ARI on a fixed sample peaks ~N=10 then a finite-sample
+  clustering artifact sets in). All future discovery scoring is burst-level. Single-window is
+  retired as the discovery unit. (Basis: `discover/burst_probe.py`; residual gap to ~0.70 is an
+  input-window/representation limit, not the protocol and not the loss.)
 - Metrics: ARI (headline), NMI, V-measure, purity, count error |K_est − K_true|.
 - Splits: discovery set FULLY device-disjoint from metric-training set. Write exact
   held-out Tx IDs to disk every time.

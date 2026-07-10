@@ -1,0 +1,86 @@
+loaded 142113 signals, 41 boards, source boards ['5', '18', '4', '16', '20']
+embeddings already unit-norm: mean=1.0000
+
+=== DIAGNOSTIC 1 — within-board spread (cosine to own centroid) ===
+      tx  src     n    mean    std     p10
+   20-20   20  3550   0.686  0.249   0.340   <- loosest
+    4-10    4  3547   0.708  0.278   0.276   <- loosest
+    20-1   20  3200   0.756  0.227   0.454   <- loosest
+    4-11    4  3600   0.761  0.380   0.012   <- loosest
+    18-1   18  2969   0.771  0.365  -0.030   <- loosest
+   18-11   18  3507   0.798  0.222   0.583   <- loosest
+    20-5   20  3600   0.802  0.302   0.353   <- loosest
+   18-13   18  3600   0.807  0.336   0.152   <- loosest
+   ...
+   18-20   18  3399   0.919  0.225   0.879   <- tightest
+    20-8   20  3600   0.923  0.217   0.899   <- tightest
+   18-12   18  3416   0.924  0.237   0.924   <- tightest
+   18-16   18  3499   0.925  0.236   0.928   <- tightest
+   20-14   20  3600   0.940  0.226   0.976   <- tightest
+
+  histogram of per-board MEAN intra-cosine:
+    [0.00,0.50):  0
+    [0.50,0.60):  0
+    [0.60,0.70): # 1
+    [0.70,0.80): ##### 5
+    [0.80,0.85): ##### 5
+    [0.85,0.90): ################### 19
+    [0.90,0.95): ########### 11
+    [0.95,1.00):  0
+
+  across 41 boards: mean-of-means=0.865  median=0.886  min=0.686  max=0.940
+  boards >=0.90 (tight): 11/41   boards <0.80 (loose): 6/41
+  VERDICT D1: MIXED
+
+=== DIAGNOSTIC 2 — between-board confusion (nearest other centroid) ===
+  top-12 most-confusable board pairs (centroid cosine):
+ board A  src    board B  src      cos  sameSrc
+   18-12   18      18-16   18    1.000      YES
+    20-3   20       20-4   20    1.000      YES
+   18-10   18      20-16   20    0.999         
+   16-20   16       18-5   18    0.997         
+    18-1   18      18-17   18    0.995      YES
+   16-19   16       5-16    5    0.995         
+    18-7   18       18-1   18    0.991      YES
+    18-4   18       5-16    5    0.990         
+     5-1    5        5-5    5    0.989      YES
+   20-14   20       20-3   20    0.988      YES
+   18-14   18      18-15   18    0.987      YES
+    16-1   16        4-1    4    0.986         
+
+  nearest-other-centroid cosine: mean=0.911 median=0.986 max=1.000 min=0.174
+  boards whose nearest other centroid cos>0.5 (mergeable): 39/41
+  fraction of nearest-neighbour pairs sharing a SOURCE board: 0.44
+
+  per SOURCE board (5 held-out boards):
+ src  n_tx  mean_intra  mean_nn_cos
+   5     4       0.928        0.787
+  18    16       0.853        0.965
+   4     3       0.918        0.892
+  16     5       0.736        0.947
+  20    13       0.897        0.872
+  confusion DIFFUSE across boards
+
+=== DIAGNOSTIC 3 — burst-level clustering (device-BLIND consecutive) ===
+
+  B=10: 14211 bursts | burst self-purity=0.999 | burst-level mean intra-cosine=0.932 (was 0.865 @ signal)
+  min_cs  K_est  |K-41|  noise% |    ARI    NMI      V  purity
+       5    142     101   37.3% |  0.258  0.702  0.702   0.425
+      10     49       8   35.2% |  0.289  0.741  0.741   0.408
+      15     32       9   40.2% |  0.318  0.760  0.760   0.419
+
+  B=20: 7105 bursts | burst self-purity=0.999 | burst-level mean intra-cosine=0.941 (was 0.865 @ signal)
+  min_cs  K_est  |K-41|  noise% |    ARI    NMI      V  purity
+       5     35       6   13.6% |  0.126  0.625  0.625   0.257
+      10     28      13   35.2% |  0.308  0.760  0.760   0.412
+      15     21      20   32.6% |  0.312  0.757  0.757   0.397
+
+  B=50: 2842 bursts | burst self-purity=0.997 | burst-level mean intra-cosine=0.953 (was 0.865 @ signal)
+  min_cs  K_est  |K-41|  noise% |    ARI    NMI      V  purity
+       5     36       5   25.5% |  0.312  0.765  0.765   0.439
+      10     18      23   23.3% |  0.324  0.770  0.770   0.394
+      15     16      25   23.8% |  0.307  0.759  0.759   0.376
+
+saved -> /home/pw26_akp_01/CAPSTONE/DL_model/summer_work/runs/wisig_supcon_fft64/discover/diagnose_report.json
+
+CHECKPOINT — diagnostics only. No fix implemented.

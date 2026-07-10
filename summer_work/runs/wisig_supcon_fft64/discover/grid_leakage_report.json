@@ -1,0 +1,15 @@
+{
+  "n_tx": 41,
+  "n_pairs": 820,
+  "pearson_r": -0.10106026420131231,
+  "pearson_p": 0.0037683308615851976,
+  "spearman_r": -0.12340048095548992,
+  "spearman_p": 0.0003973965802326105,
+  "near_le2_mean_cos": 0.08837524801492691,
+  "near_n": 54,
+  "far_ge10_mean_cos": -0.012753558345139027,
+  "far_n": 431,
+  "same_row_mean_cos": 0.12138201296329498,
+  "cross_row_mean_cos": -0.029614396393299103,
+  "channel_leakage_verdict": false
+}

@@ -1,0 +1,430 @@
+{
+  "version": "v2_annealed_tuned",
+  "smoke_steps": 5000,
+  "minutes": 3.4,
+  "best_step": 4250,
+  "select_metric": "val_ARI",
+  "weighting": {
+    "S0": 0.7,
+    "BETA": 0.15,
+    "W_MAX_TGT": 2.5,
+    "ramp_steps": [
+      1500,
+      4000
+    ]
+  },
+  "cooccur": {
+    "confuser_aware": 0.8578125,
+    "random": 0.28125,
+    "mix_frac": 0.3,
+    "expected_mix": 0.45421875,
+    "eff_pressure_target": 1.136
+  },
+  "baseline": {
+    "val_ari": 0.1822418090802574,
+    "nn_median": 0.9870302677154541,
+    "nn_mean": 0.9098232388496399,
+    "intra": 0.8300085663795471,
+    "inter": -0.02912180684506893,
+    "gap": 0.859130373224616,
+    "rx_gap": 0.04496002197265625
+  },
+  "smoke_best": {
+    "val_ari": 0.17621369291481864,
+    "nn_median": 0.9612267017364502,
+    "nn_mean": 0.8886249661445618,
+    "intra": 0.7576783299446106,
+    "inter": 0.0012537320144474506,
+    "gap": 0.7564245979301631,
+    "rx_gap": 0.0594402551651001
+  },
+  "vanilla_phase_intra": 0.8096,
+  "worst_pairs": [
+    {
+      "pair": "18-12/18-16",
+      "baseline": 0.9999,
+      "smoke": 0.9995,
+      "delta": -0.0004
+    },
+    {
+      "pair": "20-3/20-4",
+      "baseline": 0.9992,
+      "smoke": 0.9993,
+      "delta": 0.0001
+    },
+    {
+      "pair": "18-10/20-16",
+      "baseline": 0.9966,
+      "smoke": 0.9895,
+      "delta": -0.007
+    },
+    {
+      "pair": "16-20/18-5",
+      "baseline": 0.9965,
+      "smoke": 0.9948,
+      "delta": -0.0017
+    },
+    {
+      "pair": "18-1/18-7",
+      "baseline": 0.9949,
+      "smoke": 0.996,
+      "delta": 0.0011
+    },
+    {
+      "pair": "18-4/5-16",
+      "baseline": 0.9911,
+      "smoke": 0.9822,
+      "delta": -0.0089
+    },
+    {
+      "pair": "16-19/5-16",
+      "baseline": 0.9904,
+      "smoke": 0.9834,
+      "delta": -0.007
+    },
+    {
+      "pair": "18-17/20-16",
+      "baseline": 0.9888,
+      "smoke": 0.9643,
+      "delta": -0.0245
+    },
+    {
+      "pair": "18-14/18-15",
+      "baseline": 0.9887,
+      "smoke": 0.9612,
+      "delta": -0.0274
+    },
+    {
+      "pair": "5-1/5-5",
+      "baseline": 0.9884,
+      "smoke": 0.9468,
+      "delta": -0.0416
+    }
+  ],
+  "scatter_split": {
+    "path": "/home/pw26_akp_01/CAPSTONE/DL_model/summer_work/runs/wisig_supcon_fft64/splits/split_manytx_scatter.json",
+    "rows_covered": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ]
+  },
+  "trajectory": [
+    {
+      "step": 1,
+      "loss": 5.5404,
+      "w_max": 1.0,
+      "eff_pressure": 0.219,
+      "nn_med": 0.9999,
+      "nn_mean": 0.9999,
+      "val_ari": -0.0001,
+      "val_noise": 0.167,
+      "intra": 0.9898,
+      "inter": 0.9887,
+      "gap": 0.0011,
+      "rx_gap": 0.0011
+    },
+    {
+      "step": 250,
+      "loss": 5.3275,
+      "w_max": 1.0,
+      "eff_pressure": 0.441,
+      "nn_med": 0.9995,
+      "nn_mean": 0.9979,
+      "val_ari": 0.0005,
+      "val_noise": 0.023,
+      "intra": 0.7856,
+      "inter": 0.4129,
+      "gap": 0.3727,
+      "rx_gap": 0.0571
+    },
+    {
+      "step": 500,
+      "loss": 4.6146,
+      "w_max": 1.0,
+      "eff_pressure": 0.446,
+      "nn_med": 0.9946,
+      "nn_mean": 0.9689,
+      "val_ari": 0.1713,
+      "val_noise": 0.062,
+      "intra": 0.7747,
+      "inter": -0.0067,
+      "gap": 0.7815,
+      "rx_gap": 0.0413
+    },
+    {
+      "step": 750,
+      "loss": 4.6987,
+      "w_max": 1.0,
+      "eff_pressure": 0.401,
+      "nn_med": 0.9927,
+      "nn_mean": 0.9654,
+      "val_ari": 0.1568,
+      "val_noise": 0.073,
+      "intra": 0.8006,
+      "inter": -0.0021,
+      "gap": 0.8026,
+      "rx_gap": 0.045
+    },
+    {
+      "step": 1000,
+      "loss": 4.4454,
+      "w_max": 1.0,
+      "eff_pressure": 0.407,
+      "nn_med": 0.9911,
+      "nn_mean": 0.9506,
+      "val_ari": 0.1725,
+      "val_noise": 0.025,
+      "intra": 0.8029,
+      "inter": -0.0288,
+      "gap": 0.8317,
+      "rx_gap": 0.0446
+    },
+    {
+      "step": 1250,
+      "loss": 4.5035,
+      "w_max": 1.0,
+      "eff_pressure": 0.443,
+      "nn_med": 0.9872,
+      "nn_mean": 0.9562,
+      "val_ari": 0.1709,
+      "val_noise": 0.026,
+      "intra": 0.8229,
+      "inter": 0.0047,
+      "gap": 0.8182,
+      "rx_gap": 0.0449
+    },
+    {
+      "step": 1500,
+      "loss": 4.2996,
+      "w_max": 1.0,
+      "eff_pressure": 0.435,
+      "nn_med": 0.9838,
+      "nn_mean": 0.9526,
+      "val_ari": 0.1724,
+      "val_noise": 0.018,
+      "intra": 0.8096,
+      "inter": -0.0073,
+      "gap": 0.8169,
+      "rx_gap": 0.0384
+    },
+    {
+      "step": 1750,
+      "loss": 4.5471,
+      "w_max": 1.036,
+      "eff_pressure": 0.481,
+      "nn_med": 0.9876,
+      "nn_mean": 0.9502,
+      "val_ari": 0.1729,
+      "val_noise": 0.022,
+      "intra": 0.7829,
+      "inter": -0.0279,
+      "gap": 0.8107,
+      "rx_gap": 0.0445
+    },
+    {
+      "step": 2000,
+      "loss": 4.5624,
+      "w_max": 1.143,
+      "eff_pressure": 0.511,
+      "nn_med": 0.9824,
+      "nn_mean": 0.9382,
+      "val_ari": 0.1748,
+      "val_noise": 0.034,
+      "intra": 0.7917,
+      "inter": -0.0304,
+      "gap": 0.8221,
+      "rx_gap": 0.0361
+    },
+    {
+      "step": 2250,
+      "loss": 4.5891,
+      "w_max": 1.308,
+      "eff_pressure": 0.635,
+      "nn_med": 0.983,
+      "nn_mean": 0.9414,
+      "val_ari": 0.1754,
+      "val_noise": 0.029,
+      "intra": 0.7963,
+      "inter": -0.0197,
+      "gap": 0.8161,
+      "rx_gap": 0.0458
+    },
+    {
+      "step": 2500,
+      "loss": 4.7121,
+      "w_max": 1.517,
+      "eff_pressure": 0.667,
+      "nn_med": 0.9816,
+      "nn_mean": 0.9154,
+      "val_ari": 0.1742,
+      "val_noise": 0.034,
+      "intra": 0.7647,
+      "inter": -0.0153,
+      "gap": 0.78,
+      "rx_gap": 0.0544
+    },
+    {
+      "step": 2750,
+      "loss": 4.795,
+      "w_max": 1.749,
+      "eff_pressure": 0.754,
+      "nn_med": 0.9708,
+      "nn_mean": 0.9219,
+      "val_ari": 0.1718,
+      "val_noise": 0.017,
+      "intra": 0.7871,
+      "inter": -0.0162,
+      "gap": 0.8033,
+      "rx_gap": 0.0635
+    },
+    {
+      "step": 3000,
+      "loss": 4.8798,
+      "w_max": 1.981,
+      "eff_pressure": 0.873,
+      "nn_med": 0.9731,
+      "nn_mean": 0.9086,
+      "val_ari": 0.1721,
+      "val_noise": 0.017,
+      "intra": 0.7877,
+      "inter": -0.0183,
+      "gap": 0.8061,
+      "rx_gap": 0.0612
+    },
+    {
+      "step": 3250,
+      "loss": 4.6499,
+      "w_max": 2.19,
+      "eff_pressure": 1.03,
+      "nn_med": 0.9734,
+      "nn_mean": 0.9071,
+      "val_ari": 0.1723,
+      "val_noise": 0.011,
+      "intra": 0.7653,
+      "inter": -0.0151,
+      "gap": 0.7804,
+      "rx_gap": 0.0599
+    },
+    {
+      "step": 3500,
+      "loss": 4.6881,
+      "w_max": 2.356,
+      "eff_pressure": 1.053,
+      "nn_med": 0.9587,
+      "nn_mean": 0.9064,
+      "val_ari": 0.1748,
+      "val_noise": 0.026,
+      "intra": 0.7514,
+      "inter": -0.0192,
+      "gap": 0.7707,
+      "rx_gap": 0.0746
+    },
+    {
+      "step": 3750,
+      "loss": 4.5861,
+      "w_max": 2.463,
+      "eff_pressure": 1.123,
+      "nn_med": 0.9667,
+      "nn_mean": 0.9028,
+      "val_ari": 0.1734,
+      "val_noise": 0.014,
+      "intra": 0.7628,
+      "inter": -0.0066,
+      "gap": 0.7694,
+      "rx_gap": 0.0626
+    },
+    {
+      "step": 4000,
+      "loss": 4.5814,
+      "w_max": 2.5,
+      "eff_pressure": 1.144,
+      "nn_med": 0.962,
+      "nn_mean": 0.9025,
+      "val_ari": 0.1643,
+      "val_noise": 0.017,
+      "intra": 0.7579,
+      "inter": 0.0068,
+      "gap": 0.7512,
+      "rx_gap": 0.067
+    },
+    {
+      "step": 4250,
+      "loss": 4.7494,
+      "w_max": 2.5,
+      "eff_pressure": 1.099,
+      "nn_med": 0.9612,
+      "nn_mean": 0.8886,
+      "val_ari": 0.1762,
+      "val_noise": 0.04,
+      "intra": 0.7577,
+      "inter": 0.0013,
+      "gap": 0.7564,
+      "rx_gap": 0.0594
+    },
+    {
+      "step": 4500,
+      "loss": 4.6052,
+      "w_max": 2.5,
+      "eff_pressure": 1.03,
+      "nn_med": 0.9668,
+      "nn_mean": 0.8789,
+      "val_ari": 0.1751,
+      "val_noise": 0.034,
+      "intra": 0.76,
+      "inter": -0.0267,
+      "gap": 0.7867,
+      "rx_gap": 0.0554
+    },
+    {
+      "step": 4750,
+      "loss": 4.607,
+      "w_max": 2.5,
+      "eff_pressure": 1.08,
+      "nn_med": 0.9528,
+      "nn_mean": 0.8795,
+      "val_ari": 0.1736,
+      "val_noise": 0.013,
+      "intra": 0.738,
+      "inter": -0.0194,
+      "gap": 0.7574,
+      "rx_gap": 0.0736
+    },
+    {
+      "step": 5000,
+      "loss": 4.4568,
+      "w_max": 2.5,
+      "eff_pressure": 1.087,
+      "nn_med": 0.9519,
+      "nn_mean": 0.8654,
+      "val_ari": 0.1742,
+      "val_noise": 0.025,
+      "intra": 0.7423,
+      "inter": -0.0107,
+      "gap": 0.753,
+      "rx_gap": 0.0758
+    }
+  ],
+  "verdict": [
+    "intra at end-of-vanilla-phase (step 1500) = 0.810; best-ckpt intra = 0.758; final intra = 0.742",
+    "intra>=0.8: NO | nn-confuser<0.976: YES (0.9612) | val-ARI up: NO (0.182->0.176)",
+    "PARTIAL: not all gates met; inspect trajectory before committing a full run"
+  ]
+}
