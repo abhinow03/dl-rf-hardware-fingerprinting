@@ -221,8 +221,58 @@ load-bearing dial). Success would mean channel-invariance pressure learned on Wi
 bands are the operative criteria for Phase 3 (they refine the generic §5 success criterion
 above for this specific channel-adversarial run).*
 
-### 5.2 Result (Phase 3)
-_to be appended by the run below._
+### 5.2 Result (Phase 3) — BAND = NULL; generalist line CLOSED
+
+*One pre-registered run, seed 1234, no sweeps/rescues/second-seed.
+`gen_rff/train/train_dann.py` → `results_gen/phase3_dann_report.json`,
+`runs_gen/dann/best.pt`.*
+
+**Design as run.** WiSig-109 only (ORACLE dropped, F6); GenRFEncoder residual ON (F4),
+physics token OFF (F3), cross-condition positives ON (F5). Channel adversary = MLP(512→256→K)
+on the 512-D pre-projection via gradient reversal, λ ramp 0→0.3 over the first 30% of 10 k
+steps then flat. Selection = VAL-A oracle-km/0.72 + VAL-A kNN-1 (argmax; no ORACLE), frozen.
+**Adversary granularity decided from batch stats before training:** distinct (rx,date)/batch
+= 6.28 of 16 vs distinct rx/batch = 2.36 of 4 → **rx-only, 4-way**. (The frozen Phase-2
+`WISIG_CAP=250`, taken in rx-major storage order, exposes only ~4 receivers across the pool —
+a faithful consequence of the fixed config; not retuned.)
+
+**Adversary-accuracy trajectory (chance = 0.25):** first 0.625 → peak 0.938 → last 0.688,
+mean over final 20% = **0.762**. The adversary stayed **well above chance throughout** →
+**WEAK-PRESSURE**: λ=0.3 did not drive the encoder to receiver-invariance (the 4-way receiver
+signal from the capped pool was never suppressed). Per the pre-registration this is reported,
+not rescued.
+
+**Final table — mavicAir2 8-way, part-1 harness (all cells internally comparable; N=10 cap
+1500; §4a for the locked-vs-part1 N10 note):**
+
+| method | N=10 km | **N=120 km / sp** | eigengap K / ARI@K | WiSig self |
+|---|---|---|---|---|
+| frozen WiSig-only | 0.137 (locked 0.297) | **0.729 / 0.777** | 7 / 0.68 | 0.72 (specialist) |
+| native drone-trained | 0.276 | **0.792 / 0.835** | 6 / 0.69 | — |
+| A3 no-crosscond | 0.272 | **0.806** | — | 0.174 |
+| generalist (Phase 2) | 0.197 | **0.625 / 0.666** | 5 / 0.535 | 0.392 |
+| **DANN (Phase 3)** | **0.219** | **0.534 / 0.631** | 7 / 0.631 | 0.494 |
+
+[`results_gen/phase3_dann_report.json` final_eval + context_rows; `phase2b_part1_controls.csv`.]
+
+**Band verdict:** **NULL** — mav oracle-K@8 km = **0.219 @N10 (<0.35) and 0.534 @N120 (<0.80)**,
+below both bands. DANN's N=120 (0.534) is in fact the **worst** of every method measured, below
+the untrained-transfer frozen baseline (0.729): channel-adversarial pressure, even the weak
+pressure achieved here, **degraded** cross-domain transfer rather than improving it. (In-domain
+WiSig self-cell did rise, 0.392→0.494, consistent with F3/F7 — physics-off helps in-domain —
+but that is not the tested axis.)
+
+**Closing statement — the generalist architecture line is CLOSED on this pool.** Architecture
+space exhausted: multi-domain SupCon (F2), physics-token injection (F3), residual views (F4,
+helpful but insufficient), cross-condition positives (F5), capacity / longer training (F7 via
+A5), and now channel-adversarial invariance (this run) **all fail to beat the frozen baseline
+at matched N**. The N=120 convergence band (F1) shows burst integration — not learned
+representation — carries cross-domain discovery for every feature set on this data. The
+remaining levers are **(i) genuine data diversity** (protocol families that are actually
+different and individually learnable, unlike degenerate ORACLE, F6) and **(ii) per-domain
+native enrollment behind a protocol router** (§3), which already delivers the demo operating
+point (~0.89 @N120 in-domain). No further monolithic-generalist runs are warranted on this
+pool.
 
 ---
 
