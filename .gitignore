@@ -1,0 +1,17 @@
+# code only in git — artifacts, checkpoints, data caches excluded
+__pycache__/
+*.py[cod]
+*.pt
+*.pth
+*.npz
+*.npy
+*.pkl
+*.log
+# experiment artifacts (frozen main + new gen_rff branch)
+runs/
+results/
+runs_gen/
+results_gen/
+demo/out/
+*.jsonl
+.ipynb_checkpoints/
