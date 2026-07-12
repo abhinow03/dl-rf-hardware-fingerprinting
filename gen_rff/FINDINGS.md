@@ -200,10 +200,29 @@ goalposts.*
   bar at matched N, i.e. a real per-fingerprint gain, not averaging) **AND** WiSig-DEV
   self-cell not worse than the residual-only baseline. Anything less = the generalist
   direction is not worth further investment; pivot to the router (§3).
-- **Prior.** Low-to-moderate. Frozen already transfers as well as the trained generalist, so
-  the burden is on DANN to add transferable structure that plain SupCon did not; plausible it
-  helps the in-domain/transfer trade-off but does not clear the native ceiling.
-- **Result (next session):** _to be appended._
+### 5.1 Pre-registered prior + bands (Phase 3, frozen 2026-07-12 BEFORE training)
+
+**Expectation: LOW.** DANN removes *domain-predictive* structure from the representation; but
+the diagnosed failure of the generalist line is that drone-relevant information is **absent
+from the training pool**, not present-but-entangled (F2/F6). With **one** training protocol
+(WiSig only, ORACLE dropped per F6) the adversary cannot enforce *protocol* invariance at all.
+This run therefore tests the strongest available variant — **channel-adversarial invariance**:
+suppress WiSig receiver/session structure (F5 showed invariance *placement* is a real,
+load-bearing dial). Success would mean channel-invariance pressure learned on WiSig
+*generalizes to the unseen drone domain's channel structure*.
+
+**Bands (mavicAir2 oracle-K@8 km, part-1 harness, N=10 / N=120):**
+- **SIGNAL:** N10 ≥ 0.35 (clears the locked frozen wall 0.297 meaningfully) **OR** N120 ≥ 0.80
+  (clears frozen 0.729 by ~0.07).
+- **NULL:** below both → the generalist architecture line is **CLOSED** on this pool; router +
+  data-diversity stand as the conclusions (F1/F2/F3/F4/F6 cited).
+
+*This single pre-registered run has no rescue attempts, no λ sweep, no second seed. The 5.1
+bands are the operative criteria for Phase 3 (they refine the generic §5 success criterion
+above for this specific channel-adversarial run).*
+
+### 5.2 Result (Phase 3)
+_to be appended by the run below._
 
 ---
 
