@@ -90,34 +90,43 @@ def unit(M):
 # GPU augment (phase/amp shared on iq+res [linear -> exact for the residual view];
 # AWGN on iq only). NO CFO. physics is left augment-invariant (a stable identity feature).
 # ============================================================================
-def augment_4ch(xt):                 # xt [B,4,L] = [I,Q,Ires,Qres]
-    B, dev = xt.shape[0], xt.device
-    I, Q, Ir, Qr = xt[:, 0], xt[:, 1], xt[:, 2], xt[:, 3]
-    # phase rotation (same theta on iq and res — exact for LPC residual)
+def augment_pair(iq, res, use_residual=True):
+    """iq [B,2,L], res [B,2,L]. Shared phase/amp on iq (+res if used; exact for LPC residual);
+    AWGN on iq only. NO CFO. Returns (iq_aug, res_aug)."""
+    B, dev = iq.shape[0], iq.device
+    I, Q = iq[:, 0], iq[:, 1]
     do = (torch.rand(B, device=dev) < 0.5)[:, None]
     th = (torch.rand(B, device=dev) * 2 - 1) * math.pi
     c, s = torch.cos(th)[:, None], torch.sin(th)[:, None]
     I2, Q2 = I * c - Q * s, I * s + Q * c
-    Ir2, Qr2 = Ir * c - Qr * s, Ir * s + Qr * c
     I, Q = torch.where(do, I2, I), torch.where(do, Q2, Q)
-    Ir, Qr = torch.where(do, Ir2, Ir), torch.where(do, Qr2, Qr)
-    # amp scale (same a on iq and res)
     doa = (torch.rand(B, device=dev) < 0.5)[:, None]
     a = (0.7 + torch.rand(B, device=dev) * 0.7)[:, None]
     I, Q = torch.where(doa, I * a, I), torch.where(doa, Q * a, Q)
-    Ir, Qr = torch.where(doa, Ir * a, Ir), torch.where(doa, Qr * a, Qr)
-    # AWGN on iq only
     don = (torch.rand(B, device=dev) < 0.5)[:, None]
     snr = (10 + torch.rand(B, device=dev) * 30)[:, None]
-    sp = (I ** 2 + Q ** 2).mean(1, keepdim=True)
-    npow = sp / (10 ** (snr / 10))
+    sp = (I ** 2 + Q ** 2).mean(1, keepdim=True); npow = sp / (10 ** (snr / 10))
     nI = torch.randn_like(I) * torch.sqrt(npow / 2); nQ = torch.randn_like(Q) * torch.sqrt(npow / 2)
     I, Q = torch.where(don, I + nI, I), torch.where(don, Q + nQ, Q)
-    return torch.stack([I, Q, Ir, Qr], 1)
+    iq_a = torch.stack([I, Q], 1)
+    if use_residual:
+        Ir, Qr = res[:, 0], res[:, 1]
+        Ir2, Qr2 = Ir * c - Qr * s, Ir * s + Qr * c
+        Ir, Qr = torch.where(do, Ir2, Ir), torch.where(do, Qr2, Qr)
+        Ir, Qr = torch.where(doa, Ir * a, Ir), torch.where(doa, Qr * a, Qr)
+        return iq_a, torch.stack([Ir, Qr], 1)
+    return iq_a, res
 
 
-def make_spec4(iq, res, n_fft, hop):
-    return torch.cat([registry.stft_mag(iq, n_fft, hop), registry.stft_mag(res, n_fft, hop)], 1)
+def make_inputs(iq, res, n_fft, hop, use_residual=True):
+    """Build (x_time, x_spec) for the encoder given the residual toggle."""
+    if use_residual:
+        x_time = torch.cat([iq, res], 1)
+        x_spec = torch.cat([registry.stft_mag(iq, n_fft, hop), registry.stft_mag(res, n_fft, hop)], 1)
+    else:
+        x_time = iq
+        x_spec = registry.stft_mag(iq, n_fft, hop)
+    return x_time, x_spec
 
 
 # ============================================================================
@@ -125,14 +134,14 @@ def make_spec4(iq, res, n_fft, hop):
 # ============================================================================
 @torch.no_grad()
 def embed512(model, iq, res, phys, n_fft, hop, batch=256):
+    """Flag-aware: builds inputs per model.use_residual; passes physics only if use_physics."""
     model.eval()
     n = iq.shape[0]; out = np.empty((n, 512), np.float32)
     for i in range(0, n, batch):
         xt = torch.from_numpy(iq[i:i + batch]).cuda()
         rs = torch.from_numpy(res[i:i + batch]).cuda()
-        ph = torch.from_numpy(phys[i:i + batch]).cuda()
-        x_time = torch.cat([xt, rs], 1)
-        x_spec = make_spec4(xt, rs, n_fft, hop)
+        x_time, x_spec = make_inputs(xt, rs, n_fft, hop, model.use_residual)
+        ph = torch.from_numpy(phys[i:i + batch]).cuda() if model.use_physics else None
         with torch.amp.autocast('cuda'):
             out[i:i + batch] = model.get_encoder_output(x_time, x_spec, ph).float().cpu().numpy()
     return out
@@ -141,12 +150,14 @@ def embed512(model, iq, res, phys, n_fft, hop, batch=256):
 # ============================================================================
 # DATA
 # ============================================================================
-def build_train():
-    wtrain, _ = registry.domain_device_pool("WISIG")
-    otrain, _ = registry.domain_device_pool("ORACLE")
-    spec = {"WISIG": [g.split(":", 1)[1] for g in wtrain],
-            "ORACLE": [g.split(":", 1)[1] for g in otrain]}
-    caps = {"WISIG": WISIG_CAP, "ORACLE": ORACLE_CAP}
+def build_train(domains=("WISIG", "ORACLE")):
+    spec, caps = {}, {}
+    if "WISIG" in domains:
+        wtrain, _ = registry.domain_device_pool("WISIG")
+        spec["WISIG"] = [g.split(":", 1)[1] for g in wtrain]; caps["WISIG"] = WISIG_CAP
+    if "ORACLE" in domains:
+        otrain, _ = registry.domain_device_pool("ORACLE")
+        spec["ORACLE"] = [g.split(":", 1)[1] for g in otrain]; caps["ORACLE"] = ORACLE_CAP
     ds = UnifiedRFDataset(spec, caps=caps, verbose=True)
     # iq/res stay as ragged lists (shapes differ across domains); phys is homogeneous [19].
     # Batches are domain-homogeneous, so we stack per-batch at fetch time (fetch_batch).
@@ -274,10 +285,12 @@ def val_b(model, gids, cache, N=NBURST_PAPER):
 
 
 def phys_grad_share(model, batch_iq, batch_res, batch_phys, y, nfft, hop, supcon):
+    if not model.use_physics:
+        return 0.0
     model.train(); model.zero_grad()
     xt = torch.from_numpy(batch_iq).cuda(); rs = torch.from_numpy(batch_res).cuda()
     ph = torch.from_numpy(batch_phys).cuda(); yy = torch.from_numpy(y).cuda()
-    x_time = torch.cat([xt, rs], 1); x_spec = make_spec4(xt, rs, nfft, hop)
+    x_time, x_spec = make_inputs(xt, rs, nfft, hop, model.use_residual)
     emb = model(x_time, x_spec, ph)
     loss = supcon(emb, yy, temperature=TAU)
     loss.backward()
@@ -321,54 +334,64 @@ def partition_at(X, K):
 # ============================================================================
 # TRAIN
 # ============================================================================
-def sample_batch(dom_idx, dom, rng):
+def sample_batch(dom_idx, dom, rng, cross_condition=True):
     devs = list(dom_idx[dom].keys())
     chosen = rng.choice(len(devs), size=min(P_DEV, len(devs)), replace=False)
     idxs, ys = [], []
     for di in chosen:
         dl = devs[di]; conds = dom_idx[dom][dl]; cks = list(conds.keys())
+        allw = [w for ck in cks for w in conds[ck]]
         picks = []
-        if len(cks) >= 2:
+        if cross_condition and len(cks) >= 2:      # guarantee 2 distinct conditions
             rng.shuffle(cks)
             for ck in cks[:2]:
                 picks.append(int(conds[ck][rng.integers(len(conds[ck]))]))
-        allw = [w for ck in cks for w in conds[ck]]
-        while len(picks) < V_VIEW:
+        while len(picks) < V_VIEW:                 # rest (or all, if unconstrained) from any window
             picks.append(int(allw[rng.integers(len(allw))]))
         idxs.extend(picks[:V_VIEW]); ys.extend([dl] * V_VIEW)
     return np.array(idxs), np.array(ys)
 
 
-def lr_lambda(step):
-    if step < WARMUP:
-        return step / max(1, WARMUP)
-    prog = (step - WARMUP) / max(1, STEPS - WARMUP)
-    return 0.5 * (1 + math.cos(math.pi * prog))
+def default_cfg(**over):
+    cfg = dict(seed=SEED, steps=STEPS, warmup=WARMUP, tag=f"seed{SEED}",
+               use_physics=True, use_residual=True, cross_condition=True,
+               domains=("WISIG", "ORACLE"))
+    cfg.update(over)
+    return cfg
 
 
-def train(seed=SEED):
+def train(cfg=None):
+    cfg = cfg or default_cfg()
+    seed, steps, warmup, tag = cfg["seed"], cfg["steps"], cfg["warmup"], cfg["tag"]
+    use_oracle = "ORACLE" in cfg["domains"]
     torch.manual_seed(seed); np.random.seed(seed)
     rng = np.random.default_rng(seed)
-    ckdir = os.path.join(RUNS_GEN, f"seed{seed}"); os.makedirs(ckdir, exist_ok=True)
-    print(f"\n=== TRAIN seed={seed} (LOPO holdout=DRFF; train=WiSig109+ORACLE12) ===")
-    print(f"SELECTION: {SELECTION_FORMULA}")
-    ds = build_train()
+    ckdir = os.path.join(RUNS_GEN, tag); os.makedirs(ckdir, exist_ok=True)
+    print(f"\n=== TRAIN [{tag}] (LOPO holdout=DRFF; toggles: physics={cfg['use_physics']} "
+          f"residual={cfg['use_residual']} crossCond={cfg['cross_condition']} domains={cfg['domains']} steps={steps}) ===")
+
+    def lr_lambda(step):
+        if step < warmup:
+            return step / max(1, warmup)
+        prog = (step - warmup) / max(1, steps - warmup)
+        return 0.5 * (1 + math.cos(math.pi * prog))
+
+    ds = build_train(domains=cfg["domains"])
     dom_idx = domain_index(ds)
     doms = [d for d in dom_idx if len(dom_idx[d]) >= P_DEV]
     sizes = {d: len(dom_idx[d]) for d in doms}
     tot = sum(sizes.values()); dweights = np.array([sizes[d] for d in doms], float); dweights /= dweights.sum()
     for d in doms:
-        percond = np.mean([len(dom_idx[d][dl]) for dl in dom_idx[d]])
-        print(f"  domain {d}: {sizes[d]} identities, P={min(P_DEV,sizes[d])} V={V_VIEW}, "
-              f"~{percond:.1f} conditions/identity, weight={sizes[d]/tot:.3f}")
+        print(f"  domain {d}: {sizes[d]} identities, weight={sizes[d]/tot:.3f}")
     slice18, cacheA = build_val_a()
-    gidsB, cacheB = build_val_b()
-    print(f"  VAL-A WiSig DEV slice: {len(slice18)} devices | VAL-B ORACLE eval: {len(gidsB)} devices")
+    gidsB, cacheB = (build_val_b() if use_oracle else (None, None))
+    print(f"  VAL-A WiSig DEV slice: {len(slice18)} devices"
+          + (f" | VAL-B ORACLE eval: {len(gidsB)} devices" if use_oracle else " | VAL-B: n/a (no ORACLE) -> composite = VAL-A only"))
 
     nfft = {d: registry.REGISTRY[d].n_fft for d in doms}
     hop = {d: registry.REGISTRY[d].hop for d in doms}
-
-    model = GenRFEncoder(branch_dropout=True, p=0.15).cuda()
+    model = GenRFEncoder(branch_dropout=True, p=0.15,
+                         use_physics=cfg["use_physics"], use_residual=cfg["use_residual"]).cuda()
     tot_p, _ = param_count(model)
     print(f"  GenRFEncoder params: {tot_p:,} ({tot_p/1e6:.2f}M)")
     opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=1e-4)
@@ -376,54 +399,57 @@ def train(seed=SEED):
     scaler = torch.amp.GradScaler('cuda')
     supcon = SupervisedContrastiveLoss()
 
-    dom_sched = list(rng.choice(doms, size=STEPS + 1, p=dweights))
+    dom_sched = list(rng.choice(doms, size=steps + 1, p=dweights))
     curve = []; dom_loss = defaultdict(list)
     best = dict(comp=-1e9, step=-1, state=None); t0 = time.time()
-    for step in range(1, STEPS + 1):
-        dom = dom_sched[step]
-        model.train()
-        idxs, y = sample_batch(dom_idx, dom, rng)
+    for step in range(1, steps + 1):
+        dom = dom_sched[step]; model.train()
+        idxs, y = sample_batch(dom_idx, dom, rng, cross_condition=cfg["cross_condition"])
         iq, res, ph = fetch_batch(ds, idxs)
         xt = torch.from_numpy(iq).cuda(); rs = torch.from_numpy(res).cuda()
-        x4 = augment_4ch(torch.cat([xt, rs], 1))
-        x_spec = make_spec4(x4[:, :2], x4[:, 2:], nfft[dom], hop[dom])
-        phcu = torch.from_numpy(ph).cuda(); ycu = torch.from_numpy(y).cuda()
+        iq_a, res_a = augment_pair(xt, rs, use_residual=cfg["use_residual"])
+        x_time, x_spec = make_inputs(iq_a, res_a, nfft[dom], hop[dom], cfg["use_residual"])
+        phcu = torch.from_numpy(ph).cuda() if cfg["use_physics"] else None
+        ycu = torch.from_numpy(y).cuda()
         with torch.amp.autocast('cuda'):
-            emb = model(x4, x_spec, phcu)
+            emb = model(x_time, x_spec, phcu)
             loss = supcon(emb, ycu, temperature=TAU)
         opt.zero_grad(); scaler.scale(loss).backward()
         scaler.unscale_(opt); torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         scaler.step(opt); scaler.update(); sched.step()
         dom_loss[dom].append(float(loss))
-        if step % 100 == 0:
+        if step % 200 == 0:
             dl = {d: round(float(np.mean(dom_loss[d][-50:])) if dom_loss[d] else float('nan'), 3) for d in doms}
             print(f"  step {step:5d}: loss={loss:.3f} per-dom(last50)={dl} lr={sched.get_last_lr()[0]:.2e} "
                   f"({(time.time()-t0)/60:.1f}m)")
         if step % VAL_EVERY == 0:
-            ra = val_a(model, slice18, cacheA); rb = val_b(model, gidsB, cacheB)
-            # physics grad share on a fresh WiSig batch
+            ra = val_a(model, slice18, cacheA)
+            if use_oracle:
+                rb = val_b(model, gidsB, cacheB)
+                comp = composite(ra["oracle_km"], ra["knn1"], rb["oracle_km"], rb["knn1"])
+            else:
+                rb = dict(oracle_km=float("nan"), knn1=float("nan"))
+                comp = ra["oracle_km"] / SPECIALIST_REF + ra["knn1"]     # VAL-A-only substitute
             ii, yy = sample_batch(dom_idx, "WISIG", rng)
             iqi, resi, phi = fetch_batch(ds, ii)
-            pshare = phys_grad_share(model, iqi, resi, phi, yy,
-                                     nfft["WISIG"], hop["WISIG"], supcon)
-            comp = composite(ra["oracle_km"], ra["knn1"], rb["oracle_km"], rb["knn1"])
+            pshare = phys_grad_share(model, iqi, resi, phi, yy, nfft["WISIG"], hop["WISIG"], supcon)
             row = dict(step=step, VALA_km=round(ra["oracle_km"], 3), VALA_knn1=round(ra["knn1"], 3),
                        VALB_km=round(rb["oracle_km"], 3), VALB_knn1=round(rb["knn1"], 3),
-                       phys_grad_share=pshare, composite=round(comp, 4),
-                       loss=round(float(loss), 3))
+                       phys_grad_share=pshare, composite=round(comp, 4), loss=round(float(loss), 3))
             curve.append(row)
             flag = ""
             if comp > best["comp"]:
                 best = dict(comp=comp, step=step, state=copy.deepcopy(model.state_dict())); flag = "  <-best"
             print(f"    [VAL {step}] A:km={ra['oracle_km']:.3f}/knn1={ra['knn1']:.3f}  "
                   f"B:km={rb['oracle_km']:.3f}/knn1={rb['knn1']:.3f}  physShare={pshare}  comp={comp:.4f}{flag}")
-        if step % CKPT_EVERY == 0:
-            torch.save(model.state_dict(), os.path.join(ckdir, f"ckpt_step{step}.pt"))
     model.load_state_dict(best["state"])
     torch.save(best["state"], os.path.join(ckdir, "best.pt"))
     json.dump(curve, open(os.path.join(ckdir, "curve.json"), "w"), indent=2)
+    # per-domain loss trajectory (every 500 steps mean) for the report
+    dloss_traj = {d: [round(float(np.mean(dom_loss[d][max(0, k-50):k])), 3)
+                      for k in range(50, len(dom_loss[d]) + 1, 500)] for d in doms}
     print(f"  selected step {best['step']} (composite {best['comp']:.4f})")
-    return model, best, curve, ds, (slice18, cacheA), (gidsB, cacheB)
+    return model, best, curve, ds, (slice18, cacheA), (gidsB, cacheB), dloss_traj
 
 
 # ============================================================================
@@ -530,7 +556,7 @@ def band(km):
 
 
 def main():
-    model, best, curve, ds, va, vb = train(SEED)
+    model, best, curve, ds, va, vb, _dl = train(default_cfg())
     print("\n=== FINAL EVAL — mavicAir2 (untouched until now) ===")
     fe = final_eval(model)
     sc = self_cells(model, va, vb)
