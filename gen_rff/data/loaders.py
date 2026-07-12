@@ -185,8 +185,10 @@ def build_oracle_cache(devices, distances=("8ft", "14ft"), run="run1", cap=150,
 
     Returns list of units [{device_gid, condition_key(=distance), meta, X[n,2,4096]}].
     """
-    cache_path = os.path.join(RESULTS_GEN, "oracle_min_cache.npz")
+    import hashlib
     tag = f"{','.join(devices)}|{','.join(distances)}|{run}|cap{cap}|win{win}|clamp{clamp}"
+    h = hashlib.sha1(tag.encode()).hexdigest()[:12]     # per-config file so device sets coexist
+    cache_path = os.path.join(RESULTS_GEN, f"oracle_cache_{h}.npz")
     if os.path.exists(cache_path) and not force:
         z = np.load(cache_path, allow_pickle=True)
         if str(z["tag"]) == tag:
