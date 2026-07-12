@@ -1,0 +1,8 @@
+# DEMO-SIDE — NOT PAPER RESULTS
+lever,feature,scope,K,n,hdb_ari_mean,oracle_km_mean,frac_correctK
+L3,"classical-19(25MS/s,per-seg)",full8,8,1,0.03,0.046,0.0
+L3,"classical-19(25MS/s,per-seg)",K4,4,70,0.054,0.039,0.0
+L3,fullband-native(50MS/s),full8,8,1,0.03,0.086,0.0
+L3,fullband-native(50MS/s),K4,4,70,0.06,0.069,0.114
+L3,fullband(+)encoder-block,full8,8,1,0.038,0.057,0.0
+L3,fullband(+)encoder-block,K4,4,70,0.053,0.037,0.071

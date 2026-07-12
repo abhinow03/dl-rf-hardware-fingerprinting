@@ -1,0 +1,8 @@
+# DEMO-SIDE — NOT PAPER RESULTS
+scenario,tier,mode,K_true,R,N,n_repeats,success_rate,mean_ari,aris,k_ests
+T1,mixed-model,unassisted,4,4,120,5,1.0,1.0,1.000;1.000;1.000;1.000;1.000,4;4;4;4;4
+T1,mixed-model,assisted,4,4,120,5,1.0,1.0,1.000;1.000;1.000;1.000;1.000,4;4;4;4;4
+T2a,same-model,unassisted,3,4,120,5,1.0,1.0,1.000;1.000;1.000;1.000;1.000,3;3;3;3;3
+T2a,same-model,assisted,3,4,120,5,1.0,1.0,1.000;1.000;1.000;1.000;1.000,3;3;3;3;3
+T2b,same-model,unassisted,4,4,120,5,1.0,1.0,1.000;1.000;1.000;1.000;1.000,4;4;4;4;4
+T2b,same-model,assisted,4,4,120,5,1.0,1.0,1.000;1.000;1.000;1.000;1.000,4;4;4;4;4

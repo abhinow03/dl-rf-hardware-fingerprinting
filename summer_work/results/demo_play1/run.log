@@ -1,0 +1,94 @@
+/home/pw26_akp_01/rf_env/lib/python3.12/site-packages/sklearn/manifold/_spectral_embedding.py:324: UserWarning: Graph is not fully connected, spectral embedding may not work as expected.
+  warnings.warn(
+/home/pw26_akp_01/rf_env/lib/python3.12/site-packages/sklearn/manifold/_spectral_embedding.py:324: UserWarning: Graph is not fully connected, spectral embedding may not work as expected.
+  warnings.warn(
+/home/pw26_akp_01/rf_env/lib/python3.12/site-packages/sklearn/manifold/_spectral_embedding.py:324: UserWarning: Graph is not fully connected, spectral embedding may not work as expected.
+  warnings.warn(
+/home/pw26_akp_01/rf_env/lib/python3.12/site-packages/sklearn/manifold/_spectral_embedding.py:324: UserWarning: Graph is not fully connected, spectral embedding may not work as expected.
+  warnings.warn(
+[cfg] TRAIN_AF(13)=['mavic3_1', 'mavic3C_1', 'mavic3S_1', 'mavicAir2s_1', 'mavicAir2s_2', 'mavicAir2s_3', 'mavicAir2s_4', 'mavicAir2s_5', 'mavicAir2s_6', 'mavicAir2s_7', 'mini3pro_1', 'mini4PRO_1', 'mini5PRO_1']
+[cfg] VAL_AIRFRAMES=['mini3pro_2', 'mini4PRO_2']  FIXED4_slice=['mini3pro_1', 'mini4PRO_1', 'mavic3_1', 'mavic3C_1']
+[cfg] EVAL(quarantined)=['mavicAir2_1', 'mavicAir2_2', 'mavicAir2_3', 'mavicAir2_4', 'mavicAir2_5', 'mavicAir2_6', 'mavicAir2_7', 'mavicAir2_8']
+[data] building 13 train airframes (native 4096, cap 2500) ...
+    train windows: 22283 (18981 grad / 3302 val-seg), 3972 segments
+      mavic3_1       idx 0:  2500 win (2131 gr / 369 vseg)
+      mavic3C_1      idx 1:  2500 win (2125 gr / 375 vseg)
+      mavic3S_1      idx 2:  2500 win (2147 gr / 353 vseg)
+      mavicAir2s_1   idx 3:  2500 win (2117 gr / 383 vseg)
+      mavicAir2s_2   idx 4:  1065 win (909 gr / 156 vseg)
+      mavicAir2s_3   idx 5:  1192 win (1006 gr / 186 vseg)
+      mavicAir2s_4   idx 6:   129 win (110 gr / 19 vseg)
+      mavicAir2s_5   idx 7:    70 win (61 gr / 9 vseg)
+      mavicAir2s_6   idx 8:   311 win (277 gr / 34 vseg)
+      mavicAir2s_7   idx 9:  2270 win (1938 gr / 332 vseg)
+      mini3pro_1     idx10:  2500 win (2147 gr / 353 vseg)
+      mini4PRO_1     idx11:  2246 win (1905 gr / 341 vseg)
+      mini5PRO_1     idx12:  2500 win (2108 gr / 392 vseg)
+[data] building 2 VAL airframes (held out entirely, cap 1000) ...
+    val-airframe windows: 1268, 223 segments
+
+[eval-data] building mavicAir2 EVAL group (quarantined, cap 1500) ...
+    eval windows: 12000, 2103 segments, 8 airframes
+
+==============================================================================
+TRAIN seed=1234  (fresh RFEncoder, 6000 steps, native 4096 @ 50 MS/s)
+==============================================================================
+    [sanity] STFT tensor shape=(2, 2, 129, 61) (expect (2,2,129,61)); time window=4096@50MS/s
+    step  500: loss=3.5666 knn1=0.817 gap6=+0.156 vgap=+0.208 comp=+1.181 lr=4.17e-04  <-best
+    step 1000: loss=3.4028 knn1=0.843 gap6=+0.248 vgap=+0.349 comp=+1.440 lr=4.93e-04  <-best
+    step 1500: loss=3.5501 knn1=0.862 gap6=+0.276 vgap=+0.413 comp=+1.551 lr=4.67e-04  <-best
+    step 2000: loss=3.5015 knn1=0.872 gap6=+0.275 vgap=+0.376 comp=+1.522 lr=4.22e-04
+    step 2500: loss=3.2025 knn1=0.874 gap6=+0.258 vgap=+0.403 comp=+1.535 lr=3.62e-04
+    step 3000: loss=3.3365 knn1=0.875 gap6=+0.280 vgap=+0.384 comp=+1.538 lr=2.93e-04
+    step 3500: loss=3.2666 knn1=0.872 gap6=+0.296 vgap=+0.388 comp=+1.556 lr=2.21e-04  <-best
+    step 4000: loss=3.3092 knn1=0.874 gap6=+0.283 vgap=+0.374 comp=+1.531 lr=1.51e-04
+    step 4500: loss=3.1748 knn1=0.886 gap6=+0.263 vgap=+0.368 comp=+1.517 lr=8.93e-05
+    step 5000: loss=3.1585 knn1=0.895 gap6=+0.268 vgap=+0.363 comp=+1.526 lr=4.11e-05
+    step 5500: loss=3.1055 knn1=0.894 gap6=+0.264 vgap=+0.361 comp=+1.519 lr=1.05e-05
+    step 6000: loss=3.2262 knn1=0.891 gap6=+0.266 vgap=+0.362 comp=+1.518 lr=0.00e+00
+  selected ckpt: step 3500 (composite +1.5563)
+  --- FINAL EVAL seed=1234 (mavicAir2, untouched) ---
+  [seed1234]  perseg: 8way HDB=0.077 orK@8 km=0.039/sp=0.062 kNN1=0.872 gap=0.018 | K4 mean=0.123 frac>=.6=0.0 correctK=0.0 (n=70)
+  [seed1234]     N50: 8way HDB=0.075 orK@8 km=0.636/sp=0.667 kNN1=0.95 gap=0.089 | K4 mean=0.538 frac>=.6=0.386 correctK=0.2 (n=70)
+  [seed1234] VAL-airframes(2, perseg): HDB=0.406 orK@2 km=0.431/sp=0.431 kNN1=0.997 gap=0.164
+
+==============================================================================
+TRAIN seed=2024  (fresh RFEncoder, 6000 steps, native 4096 @ 50 MS/s)
+==============================================================================
+    [sanity] STFT tensor shape=(2, 2, 129, 61) (expect (2,2,129,61)); time window=4096@50MS/s
+    step  500: loss=3.6967 knn1=0.770 gap6=+0.142 vgap=+0.229 comp=+1.141 lr=4.17e-04  <-best
+    step 1000: loss=3.5564 knn1=0.835 gap6=+0.181 vgap=+0.316 comp=+1.332 lr=4.93e-04  <-best
+    step 1500: loss=3.3764 knn1=0.847 gap6=+0.211 vgap=+0.362 comp=+1.421 lr=4.67e-04  <-best
+    step 2000: loss=3.3974 knn1=0.860 gap6=+0.309 vgap=+0.368 comp=+1.537 lr=4.22e-04  <-best
+    step 2500: loss=3.2131 knn1=0.851 gap6=+0.296 vgap=+0.404 comp=+1.552 lr=3.62e-04  <-best
+    step 3000: loss=3.2636 knn1=0.852 gap6=+0.271 vgap=+0.371 comp=+1.494 lr=2.93e-04
+    step 3500: loss=3.3060 knn1=0.857 gap6=+0.298 vgap=+0.390 comp=+1.545 lr=2.21e-04
+    step 4000: loss=3.2790 knn1=0.870 gap6=+0.298 vgap=+0.385 comp=+1.553 lr=1.51e-04  <-best
+    step 4500: loss=3.2967 knn1=0.868 gap6=+0.286 vgap=+0.374 comp=+1.528 lr=8.93e-05
+    step 5000: loss=3.1928 knn1=0.866 gap6=+0.277 vgap=+0.363 comp=+1.506 lr=4.11e-05
+    step 5500: loss=3.1519 knn1=0.874 gap6=+0.262 vgap=+0.351 comp=+1.487 lr=1.05e-05
+    step 6000: loss=3.1254 knn1=0.875 gap6=+0.260 vgap=+0.349 comp=+1.485 lr=0.00e+00
+  selected ckpt: step 4000 (composite +1.5530)
+  --- FINAL EVAL seed=2024 (mavicAir2, untouched) ---
+  [seed2024]  perseg: 8way HDB=0.054 orK@8 km=0.041/sp=0.055 kNN1=0.827 gap=0.015 | K4 mean=0.098 frac>=.6=0.0 correctK=0.0 (n=70)
+  [seed2024]     N50: 8way HDB=0.075 orK@8 km=0.733/sp=0.756 kNN1=0.946 gap=0.069 | K4 mean=0.545 frac>=.6=0.471 correctK=0.2 (n=70)
+  [seed2024] VAL-airframes(2, perseg): HDB=0.401 orK@2 km=-0.004/sp=0.431 kNN1=0.996 gap=0.127
+
+==============================================================================
+FINAL mavicAir2 TABLE (512-D head-free; best-of per cell shown in ledger)
+==============================================================================
+ seed    mode  8wHDB   orKm   orSp   kNN1  K4mean  K4>=.6  corrK
+ 1234  perseg  0.077  0.039  0.062  0.872   0.123     0.0    0.0
+ 1234     N50  0.075  0.636  0.667   0.95   0.538   0.386    0.2
+ 2024  perseg  0.054  0.041  0.055  0.827   0.098     0.0    0.0
+ 2024     N50  0.075  0.733  0.756  0.946   0.545   0.471    0.2
+
+VAL-airframe reference (generalization signal):
+  seed1234: HDB=0.406 orKm=0.431 orSp=0.431 kNN1=0.997 gap=0.164
+  seed2024: HDB=0.401 orKm=-0.004 orSp=0.431 kNN1=0.996 gap=0.127
+
+=== PRE-REGISTERED GATE ===
+PARTIAL: best oracle-K@8=0.756, K=4 mean HDB ARI=0.545 -> real signal; human decides on Play 2.
+
+saved -> results/demo_play1/ (demo_ledger.csv, curve_seed*.csv, report.json); ckpts -> runs/drone_native/seed*/
+CHECKPOINT — DEMO-side; from scratch; best_model.pt untouched; mavicAir2 quarantined until final eval; TEST/M100 sealed.

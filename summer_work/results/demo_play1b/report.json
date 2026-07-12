@@ -1,0 +1,428 @@
+{
+  "header": "DEMO-SIDE \u2014 NOT PAPER RESULTS",
+  "framing": "bursts = tracks (track continuity), not ground-truth identity; per-device grouping stands in for tracks offline; demo groups by track.",
+  "question": "pick clustering stack + burst size maximizing demo scenario success.",
+  "checkpoints": {
+    "seed1234": "runs/drone_native/seed1234/best.pt",
+    "seed2024": "runs/drone_native/seed2024/best.pt"
+  },
+  "primary_seed": 2024,
+  "Nstar": 120,
+  "chosen_estimator": "eigengap",
+  "choice_rule": "max K=4 scenario-success on primary seed (uses only 8-way+K=4), tie-break 8-way success then lower |Kerr|; committed before K=3.",
+  "choice_scores": {
+    "eigengap": {
+      "k4_success": 0.471,
+      "k8_success": 0.0,
+      "k4_kerr": 0.571
+    },
+    "stability": {
+      "k4_success": 0.1,
+      "k8_success": 0.0,
+      "k4_kerr": 1.557
+    },
+    "silhouette": {
+      "k4_success": 0.2,
+      "k8_success": 0.0,
+      "k4_kerr": 1.414
+    },
+    "gmm_bic": {
+      "k4_success": 0.0,
+      "k8_success": 0.0,
+      "k4_kerr": 2.0
+    },
+    "hdbscan": {
+      "k4_success": 0.471,
+      "k8_success": 0.0,
+      "k4_kerr": 0.771
+    }
+  },
+  "nsweep": [
+    {
+      "seed": 1234,
+      "N": 20,
+      "bursts_per_af": 75,
+      "n_bursts": 600,
+      "oracle_km": 0.459,
+      "oracle_sp": 0.488,
+      "oracleK": 0.488,
+      "knn1": 0.91
+    },
+    {
+      "seed": 1234,
+      "N": 30,
+      "bursts_per_af": 50,
+      "n_bursts": 400,
+      "oracle_km": 0.504,
+      "oracle_sp": 0.442,
+      "oracleK": 0.504,
+      "knn1": 0.905
+    },
+    {
+      "seed": 1234,
+      "N": 50,
+      "bursts_per_af": 30,
+      "n_bursts": 240,
+      "oracle_km": 0.636,
+      "oracle_sp": 0.667,
+      "oracleK": 0.667,
+      "knn1": 0.95
+    },
+    {
+      "seed": 1234,
+      "N": 80,
+      "bursts_per_af": 18,
+      "n_bursts": 144,
+      "oracle_km": 0.782,
+      "oracle_sp": 0.762,
+      "oracleK": 0.782,
+      "knn1": 0.979
+    },
+    {
+      "seed": 1234,
+      "N": 120,
+      "bursts_per_af": 12,
+      "n_bursts": 96,
+      "oracle_km": 0.744,
+      "oracle_sp": 0.772,
+      "oracleK": 0.772,
+      "knn1": 0.958
+    },
+    {
+      "seed": 2024,
+      "N": 20,
+      "bursts_per_af": 75,
+      "n_bursts": 600,
+      "oracle_km": 0.424,
+      "oracle_sp": 0.493,
+      "oracleK": 0.493,
+      "knn1": 0.915
+    },
+    {
+      "seed": 2024,
+      "N": 30,
+      "bursts_per_af": 50,
+      "n_bursts": 400,
+      "oracle_km": 0.523,
+      "oracle_sp": 0.54,
+      "oracleK": 0.54,
+      "knn1": 0.948
+    },
+    {
+      "seed": 2024,
+      "N": 50,
+      "bursts_per_af": 30,
+      "n_bursts": 240,
+      "oracle_km": 0.733,
+      "oracle_sp": 0.756,
+      "oracleK": 0.756,
+      "knn1": 0.946
+    },
+    {
+      "seed": 2024,
+      "N": 80,
+      "bursts_per_af": 18,
+      "n_bursts": 144,
+      "oracle_km": 0.782,
+      "oracle_sp": 0.834,
+      "oracleK": 0.834,
+      "knn1": 0.993
+    },
+    {
+      "seed": 2024,
+      "N": 120,
+      "bursts_per_af": 12,
+      "n_bursts": 96,
+      "oracle_km": 0.895,
+      "oracle_sp": 0.891,
+      "oracleK": 0.895,
+      "knn1": 0.99
+    }
+  ],
+  "exhaustion_verdict": {
+    "largest_N": 120,
+    "bursts_per_af": 12,
+    "oracleK": 0.895,
+    "best_oracleK": 0.895
+  },
+  "bakeoff": [
+    {
+      "seed": 1234,
+      "scope": "K8",
+      "estimator": "eigengap",
+      "N": 120,
+      "n_cases": 1,
+      "correctK_frac": 1.0,
+      "kerr_mean": 0.0,
+      "ari_at_K": 0.772
+    },
+    {
+      "seed": 1234,
+      "scope": "K8",
+      "estimator": "stability",
+      "N": 120,
+      "n_cases": 1,
+      "correctK_frac": 0.0,
+      "kerr_mean": 6.0,
+      "ari_at_K": 0.072
+    },
+    {
+      "seed": 1234,
+      "scope": "K8",
+      "estimator": "silhouette",
+      "N": 120,
+      "n_cases": 1,
+      "correctK_frac": 0.0,
+      "kerr_mean": 6.0,
+      "ari_at_K": 0.072
+    },
+    {
+      "seed": 1234,
+      "scope": "K8",
+      "estimator": "gmm_bic",
+      "N": 120,
+      "n_cases": 1,
+      "correctK_frac": 0.0,
+      "kerr_mean": 6.0,
+      "ari_at_K": 0.072
+    },
+    {
+      "seed": 1234,
+      "scope": "K8",
+      "estimator": "hdbscan",
+      "N": 120,
+      "n_cases": 1,
+      "correctK_frac": 0.0,
+      "kerr_mean": 6.0,
+      "ari_at_K": 0.072
+    },
+    {
+      "seed": 1234,
+      "scope": "K4",
+      "estimator": "eigengap",
+      "N": 120,
+      "n_cases": 70,
+      "correctK_frac": 0.543,
+      "kerr_mean": 0.471,
+      "ari_at_K": 0.803
+    },
+    {
+      "seed": 1234,
+      "scope": "K4",
+      "estimator": "stability",
+      "N": 120,
+      "n_cases": 70,
+      "correctK_frac": 0.229,
+      "kerr_mean": 1.329,
+      "ari_at_K": 0.542
+    },
+    {
+      "seed": 1234,
+      "scope": "K4",
+      "estimator": "silhouette",
+      "N": 120,
+      "n_cases": 70,
+      "correctK_frac": 0.229,
+      "kerr_mean": 1.429,
+      "ari_at_K": 0.543
+    },
+    {
+      "seed": 1234,
+      "scope": "K4",
+      "estimator": "gmm_bic",
+      "N": 120,
+      "n_cases": 70,
+      "correctK_frac": 0.0,
+      "kerr_mean": 2.0,
+      "ari_at_K": 0.338
+    },
+    {
+      "seed": 1234,
+      "scope": "K4",
+      "estimator": "hdbscan",
+      "N": 120,
+      "n_cases": 70,
+      "correctK_frac": 0.457,
+      "kerr_mean": 0.714,
+      "ari_at_K": 0.751
+    },
+    {
+      "seed": 2024,
+      "scope": "K8",
+      "estimator": "eigengap",
+      "N": 120,
+      "n_cases": 1,
+      "correctK_frac": 0.0,
+      "kerr_mean": 1.0,
+      "ari_at_K": 0.746
+    },
+    {
+      "seed": 2024,
+      "scope": "K8",
+      "estimator": "stability",
+      "N": 120,
+      "n_cases": 1,
+      "correctK_frac": 0.0,
+      "kerr_mean": 6.0,
+      "ari_at_K": 0.072
+    },
+    {
+      "seed": 2024,
+      "scope": "K8",
+      "estimator": "silhouette",
+      "N": 120,
+      "n_cases": 1,
+      "correctK_frac": 0.0,
+      "kerr_mean": 6.0,
+      "ari_at_K": 0.072
+    },
+    {
+      "seed": 2024,
+      "scope": "K8",
+      "estimator": "gmm_bic",
+      "N": 120,
+      "n_cases": 1,
+      "correctK_frac": 0.0,
+      "kerr_mean": 6.0,
+      "ari_at_K": 0.072
+    },
+    {
+      "seed": 2024,
+      "scope": "K8",
+      "estimator": "hdbscan",
+      "N": 120,
+      "n_cases": 1,
+      "correctK_frac": 0.0,
+      "kerr_mean": 4.0,
+      "ari_at_K": 0.445
+    },
+    {
+      "seed": 2024,
+      "scope": "K4",
+      "estimator": "eigengap",
+      "N": 120,
+      "n_cases": 70,
+      "correctK_frac": 0.471,
+      "kerr_mean": 0.571,
+      "ari_at_K": 0.8
+    },
+    {
+      "seed": 2024,
+      "scope": "K4",
+      "estimator": "stability",
+      "N": 120,
+      "n_cases": 70,
+      "correctK_frac": 0.1,
+      "kerr_mean": 1.557,
+      "ari_at_K": 0.477
+    },
+    {
+      "seed": 2024,
+      "scope": "K4",
+      "estimator": "silhouette",
+      "N": 120,
+      "n_cases": 70,
+      "correctK_frac": 0.2,
+      "kerr_mean": 1.414,
+      "ari_at_K": 0.524
+    },
+    {
+      "seed": 2024,
+      "scope": "K4",
+      "estimator": "gmm_bic",
+      "N": 120,
+      "n_cases": 70,
+      "correctK_frac": 0.0,
+      "kerr_mean": 2.0,
+      "ari_at_K": 0.338
+    },
+    {
+      "seed": 2024,
+      "scope": "K4",
+      "estimator": "hdbscan",
+      "N": 120,
+      "n_cases": 70,
+      "correctK_frac": 0.471,
+      "kerr_mean": 0.771,
+      "ari_at_K": 0.722
+    }
+  ],
+  "stability_example": {
+    "curve": {
+      "2": 1.0,
+      "3": 1.0,
+      "4": 0.961,
+      "5": 0.845,
+      "6": 0.766,
+      "7": 0.719,
+      "8": 0.678,
+      "9": 0.674,
+      "10": 0.649
+    },
+    "seed": 2024
+  },
+  "scenario": [
+    {
+      "seed": 1234,
+      "scope": "K8",
+      "Ktrue": 8,
+      "estimator": "eigengap",
+      "N": 120,
+      "n": 1,
+      "success_unassisted": 1.0,
+      "success_assisted": 1.0
+    },
+    {
+      "seed": 1234,
+      "scope": "K4",
+      "Ktrue": 4,
+      "estimator": "eigengap",
+      "N": 120,
+      "n": 70,
+      "success_unassisted": 0.5,
+      "success_assisted": 0.929
+    },
+    {
+      "seed": 1234,
+      "scope": "K3",
+      "Ktrue": 3,
+      "estimator": "eigengap",
+      "N": 120,
+      "n": 56,
+      "success_unassisted": 0.661,
+      "success_assisted": 0.929
+    },
+    {
+      "seed": 2024,
+      "scope": "K8",
+      "Ktrue": 8,
+      "estimator": "eigengap",
+      "N": 120,
+      "n": 1,
+      "success_unassisted": 0.0,
+      "success_assisted": 1.0
+    },
+    {
+      "seed": 2024,
+      "scope": "K4",
+      "Ktrue": 4,
+      "estimator": "eigengap",
+      "N": 120,
+      "n": 70,
+      "success_unassisted": 0.471,
+      "success_assisted": 1.0
+    },
+    {
+      "seed": 2024,
+      "scope": "K3",
+      "Ktrue": 3,
+      "estimator": "eigengap",
+      "N": 120,
+      "n": 56,
+      "success_unassisted": 0.643,
+      "success_assisted": 1.0
+    }
+  ],
+  "gate": "WORKABLE: K<=4 unassisted=0.661 (0.5-0.7) / assisted=1.000 -> ship with assisted mode (eigengap@N120).",
+  "guardrails": "no training; fixed 5-estimator list; mavicAir2 only; both seeds; separate demo ledger; TEST/M100/best_model.pt untouched."
+}

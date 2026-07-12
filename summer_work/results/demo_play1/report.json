@@ -1,0 +1,438 @@
+{
+  "header": "DEMO-SIDE \u2014 NOT PAPER RESULTS",
+  "note": "Play 1 drone-native encoder from scratch; a separate CAPSTONE artifact; NEVER merged into paper tables. best_model.pt never loaded/written.",
+  "question": "does the WiSig recipe (metric on many identities -> discover held-out identities) work NATIVELY on drone RF (train 13 non-mavicAir2 airframes, discover mavicAir2 8)?",
+  "window_spec": {
+    "win": 4096,
+    "rate_MSps": 50,
+    "dur_us": 81.9,
+    "decimation": "NONE (raw 50 MS/s)",
+    "stft": {
+      "n_fft": 256,
+      "hop": 64,
+      "window": "hann",
+      "shape": [
+        2,
+        129,
+        61
+      ]
+    },
+    "standardize": "per-window unit-power"
+  },
+  "m100_decision": "EXCLUDED \u2014 32x256 @ 25 MS/s cache is a different sample-rate and time-span; not commensurable with native 50 MS/s 4096-windows in one SupCon space without an unvalidated rate/time normalization. DRFF-native (13 train af) is the primary plan.",
+  "data": {
+    "pool_airframes": [
+      "mavic3_1",
+      "mavic3C_1",
+      "mavic3S_1",
+      "mavicAir2s_1",
+      "mavicAir2s_2",
+      "mavicAir2s_3",
+      "mavicAir2s_4",
+      "mavicAir2s_5",
+      "mavicAir2s_6",
+      "mavicAir2s_7",
+      "mini3pro_1",
+      "mini3pro_2",
+      "mini4PRO_1",
+      "mini4PRO_2",
+      "mini5PRO_1"
+    ],
+    "train_airframes": [
+      "mavic3_1",
+      "mavic3C_1",
+      "mavic3S_1",
+      "mavicAir2s_1",
+      "mavicAir2s_2",
+      "mavicAir2s_3",
+      "mavicAir2s_4",
+      "mavicAir2s_5",
+      "mavicAir2s_6",
+      "mavicAir2s_7",
+      "mini3pro_1",
+      "mini4PRO_1",
+      "mini5PRO_1"
+    ],
+    "val_airframes": [
+      "mini3pro_2",
+      "mini4PRO_2"
+    ],
+    "eval_group": [
+      "mavicAir2_1",
+      "mavicAir2_2",
+      "mavicAir2_3",
+      "mavicAir2_4",
+      "mavicAir2_5",
+      "mavicAir2_6",
+      "mavicAir2_7",
+      "mavicAir2_8"
+    ],
+    "fixed4_slice": [
+      "mini3pro_1",
+      "mini4PRO_1",
+      "mavic3_1",
+      "mavic3C_1"
+    ],
+    "slice6": [
+      "mini3pro_1",
+      "mini4PRO_1",
+      "mavic3_1",
+      "mavic3C_1",
+      "mini3pro_2",
+      "mini4PRO_2"
+    ],
+    "train_windows": 22283,
+    "train_grad": 18981,
+    "train_valseg": 3302,
+    "valaf_windows": 1268,
+    "eval_windows": 12000
+  },
+  "selection_composite": "composite = knn1(6-way slice, val segs) + gap6(6-way slice) + vgap(13 train af val segs); argmax over ckpts; mavicAir2 never in metric.",
+  "train_config": {
+    "seeds": [
+      1234,
+      2024
+    ],
+    "steps": 6000,
+    "ckpt_every": 500,
+    "warmup": 600,
+    "lr": 0.0005,
+    "tau": 0.5,
+    "batch": 104,
+    "positives": "same-airframe (incl. same-segment multi-view pairs)",
+    "augment": "AWGN SNR U(10,40)dB p=.5, amp-scale U(0.7,1.4) p=.5, phase-rot U(-pi,pi) p=.5; NO CFO",
+    "optimizer": "AdamW 5e-4, cosine+10% warmup, grad-clip 1.0, AMP"
+  },
+  "selected_checkpoints": {
+    "1234": {
+      "step": 3500,
+      "composite": 1.5563
+    },
+    "2024": {
+      "step": 4000,
+      "composite": 1.553
+    }
+  },
+  "curves": {
+    "1234": [
+      {
+        "step": 500,
+        "loss": 3.5666,
+        "lr": 0.000417,
+        "knn1": 0.8171,
+        "gap6": 0.1564,
+        "vgap": 0.2076,
+        "composite": 1.181
+      },
+      {
+        "step": 1000,
+        "loss": 3.4028,
+        "lr": 0.000493,
+        "knn1": 0.8426,
+        "gap6": 0.2484,
+        "vgap": 0.3489,
+        "composite": 1.4399
+      },
+      {
+        "step": 1500,
+        "loss": 3.5501,
+        "lr": 0.000467,
+        "knn1": 0.8618,
+        "gap6": 0.2759,
+        "vgap": 0.413,
+        "composite": 1.5507
+      },
+      {
+        "step": 2000,
+        "loss": 3.5015,
+        "lr": 0.000422,
+        "knn1": 0.8718,
+        "gap6": 0.2745,
+        "vgap": 0.3762,
+        "composite": 1.5225
+      },
+      {
+        "step": 2500,
+        "loss": 3.2025,
+        "lr": 0.000362,
+        "knn1": 0.8736,
+        "gap6": 0.2581,
+        "vgap": 0.4029,
+        "composite": 1.5346
+      },
+      {
+        "step": 3000,
+        "loss": 3.3365,
+        "lr": 0.000293,
+        "knn1": 0.8751,
+        "gap6": 0.2795,
+        "vgap": 0.3838,
+        "composite": 1.5383
+      },
+      {
+        "step": 3500,
+        "loss": 3.2666,
+        "lr": 0.000221,
+        "knn1": 0.8721,
+        "gap6": 0.2961,
+        "vgap": 0.3881,
+        "composite": 1.5563
+      },
+      {
+        "step": 4000,
+        "loss": 3.3092,
+        "lr": 0.000151,
+        "knn1": 0.874,
+        "gap6": 0.2829,
+        "vgap": 0.3739,
+        "composite": 1.5308
+      },
+      {
+        "step": 4500,
+        "loss": 3.1748,
+        "lr": 8.9e-05,
+        "knn1": 0.8862,
+        "gap6": 0.2628,
+        "vgap": 0.3684,
+        "composite": 1.5173
+      },
+      {
+        "step": 5000,
+        "loss": 3.1585,
+        "lr": 4.1e-05,
+        "knn1": 0.8954,
+        "gap6": 0.2683,
+        "vgap": 0.3626,
+        "composite": 1.5264
+      },
+      {
+        "step": 5500,
+        "loss": 3.1055,
+        "lr": 1.1e-05,
+        "knn1": 0.8936,
+        "gap6": 0.2637,
+        "vgap": 0.3615,
+        "composite": 1.5188
+      },
+      {
+        "step": 6000,
+        "loss": 3.2262,
+        "lr": 0.0,
+        "knn1": 0.8906,
+        "gap6": 0.266,
+        "vgap": 0.3618,
+        "composite": 1.5185
+      }
+    ],
+    "2024": [
+      {
+        "step": 500,
+        "loss": 3.6967,
+        "lr": 0.000417,
+        "knn1": 0.7705,
+        "gap6": 0.1418,
+        "vgap": 0.2285,
+        "composite": 1.1408
+      },
+      {
+        "step": 1000,
+        "loss": 3.5564,
+        "lr": 0.000493,
+        "knn1": 0.8348,
+        "gap6": 0.1812,
+        "vgap": 0.3162,
+        "composite": 1.3322
+      },
+      {
+        "step": 1500,
+        "loss": 3.3764,
+        "lr": 0.000467,
+        "knn1": 0.847,
+        "gap6": 0.2115,
+        "vgap": 0.3621,
+        "composite": 1.4206
+      },
+      {
+        "step": 2000,
+        "loss": 3.3974,
+        "lr": 0.000422,
+        "knn1": 0.8596,
+        "gap6": 0.3089,
+        "vgap": 0.3684,
+        "composite": 1.5369
+      },
+      {
+        "step": 2500,
+        "loss": 3.2131,
+        "lr": 0.000362,
+        "knn1": 0.8511,
+        "gap6": 0.2964,
+        "vgap": 0.4042,
+        "composite": 1.5516
+      },
+      {
+        "step": 3000,
+        "loss": 3.2636,
+        "lr": 0.000293,
+        "knn1": 0.8522,
+        "gap6": 0.2705,
+        "vgap": 0.3715,
+        "composite": 1.4942
+      },
+      {
+        "step": 3500,
+        "loss": 3.306,
+        "lr": 0.000221,
+        "knn1": 0.857,
+        "gap6": 0.2979,
+        "vgap": 0.3898,
+        "composite": 1.5447
+      },
+      {
+        "step": 4000,
+        "loss": 3.279,
+        "lr": 0.000151,
+        "knn1": 0.8699,
+        "gap6": 0.2982,
+        "vgap": 0.3848,
+        "composite": 1.553
+      },
+      {
+        "step": 4500,
+        "loss": 3.2967,
+        "lr": 8.9e-05,
+        "knn1": 0.8681,
+        "gap6": 0.2856,
+        "vgap": 0.3745,
+        "composite": 1.5282
+      },
+      {
+        "step": 5000,
+        "loss": 3.1928,
+        "lr": 4.1e-05,
+        "knn1": 0.8655,
+        "gap6": 0.2771,
+        "vgap": 0.3632,
+        "composite": 1.5057
+      },
+      {
+        "step": 5500,
+        "loss": 3.1519,
+        "lr": 1.1e-05,
+        "knn1": 0.874,
+        "gap6": 0.2622,
+        "vgap": 0.3509,
+        "composite": 1.4871
+      },
+      {
+        "step": 6000,
+        "loss": 3.1254,
+        "lr": 0.0,
+        "knn1": 0.8755,
+        "gap6": 0.2604,
+        "vgap": 0.3495,
+        "composite": 1.4853
+      }
+    ]
+  },
+  "final_eval": {
+    "1234": {
+      "perseg": {
+        "full8": {
+          "hdb_ari": 0.077,
+          "hdb_kest": 15.5,
+          "oracle_km": 0.039,
+          "oracle_sp": 0.062,
+          "knn1": 0.872,
+          "gap": 0.018,
+          "n_bursts": 2000,
+          "per_af": 250
+        },
+        "k4": {
+          "mean_ari": 0.123,
+          "std_ari": 0.059,
+          "frac_ge0p6": 0.0,
+          "frac_correctK": 0.0,
+          "n_subsets": 70
+        }
+      },
+      "N50": {
+        "full8": {
+          "hdb_ari": 0.075,
+          "hdb_kest": 2.0,
+          "oracle_km": 0.636,
+          "oracle_sp": 0.667,
+          "knn1": 0.95,
+          "gap": 0.089,
+          "n_bursts": 240,
+          "per_af": 30
+        },
+        "k4": {
+          "mean_ari": 0.538,
+          "std_ari": 0.233,
+          "frac_ge0p6": 0.386,
+          "frac_correctK": 0.2,
+          "n_subsets": 70
+        }
+      },
+      "val_airframes": {
+        "hdb_ari": 0.406,
+        "oracle_km": 0.431,
+        "oracle_sp": 0.431,
+        "knn1": 0.997,
+        "gap": 0.164,
+        "n_bursts": 164
+      }
+    },
+    "2024": {
+      "perseg": {
+        "full8": {
+          "hdb_ari": 0.054,
+          "hdb_kest": 13.5,
+          "oracle_km": 0.041,
+          "oracle_sp": 0.055,
+          "knn1": 0.827,
+          "gap": 0.015,
+          "n_bursts": 2000,
+          "per_af": 250
+        },
+        "k4": {
+          "mean_ari": 0.098,
+          "std_ari": 0.039,
+          "frac_ge0p6": 0.0,
+          "frac_correctK": 0.0,
+          "n_subsets": 70
+        }
+      },
+      "N50": {
+        "full8": {
+          "hdb_ari": 0.075,
+          "hdb_kest": 2.0,
+          "oracle_km": 0.733,
+          "oracle_sp": 0.756,
+          "knn1": 0.946,
+          "gap": 0.069,
+          "n_bursts": 240,
+          "per_af": 30
+        },
+        "k4": {
+          "mean_ari": 0.545,
+          "std_ari": 0.253,
+          "frac_ge0p6": 0.471,
+          "frac_correctK": 0.2,
+          "n_subsets": 70
+        }
+      },
+      "val_airframes": {
+        "hdb_ari": 0.401,
+        "oracle_km": -0.004,
+        "oracle_sp": 0.431,
+        "knn1": 0.996,
+        "gap": 0.127,
+        "n_bursts": 164
+      }
+    }
+  },
+  "gate": "PARTIAL: best oracle-K@8=0.756, K=4 mean HDB ARI=0.545 -> real signal; human decides on Play 2.",
+  "guardrails": "from scratch (best_model.pt never loaded/written); mavicAir2 quarantined until final eval (no windows/stats/stopping/selection); fixed recipe (no arch/loss sweeps); writes only runs/drone_native/ + results/demo_play1/; separate demo ledger; TEST/board-18 + M100 untouched."
+}

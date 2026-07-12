@@ -1,0 +1,8 @@
+# DEMO-SIDE — NOT PAPER RESULTS
+lever,K,N,method,n_subsets,hdb_ari_mean,hdb_ari_std,frac_ari_ge0.6,oracle_km_mean,frac_correctK
+L1,4,10,classical-19,70,0.207,0.128,0.0,0.339,0.386
+L1,4,10,frozen-512,70,0.136,0.111,0.0,0.339,0.114
+L1,4,10,hybrid-pca64+19,70,0.176,0.116,0.0,0.282,0.329
+L1,3,10,classical-19,56,0.214,0.16,0.0,0.397,0.196
+L1,3,10,frozen-512,56,0.169,0.177,0.0,0.391,0.054
+L1,3,10,hybrid-pca64+19,56,0.179,0.152,0.0,0.334,0.196

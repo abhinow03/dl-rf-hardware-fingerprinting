@@ -1,0 +1,59 @@
+[data] building mavicAir2 eval (native 4096, cap 1500) ...
+    windows=12000 segments=2103 airframes=8
+    embedded seed1234 -> 512-D (12000 windows)
+    embedded seed2024 -> 512-D (12000 windows)
+
+==============================================================================
+STEP 1 — balanced burst-N sweep (8-way, oracle-K@8 + kNN-1)
+==============================================================================
+  seed1234 N= 20: bursts/af= 75 (n=600) oracle-K@8 km=0.459/sp=0.488 kNN1=0.910
+  seed1234 N= 30: bursts/af= 50 (n=400) oracle-K@8 km=0.504/sp=0.442 kNN1=0.905
+  seed1234 N= 50: bursts/af= 30 (n=240) oracle-K@8 km=0.636/sp=0.667 kNN1=0.950
+  seed1234 N= 80: bursts/af= 18 (n=144) oracle-K@8 km=0.782/sp=0.762 kNN1=0.979
+  seed1234 N=120: bursts/af= 12 (n=96) oracle-K@8 km=0.744/sp=0.772 kNN1=0.958
+  seed2024 N= 20: bursts/af= 75 (n=600) oracle-K@8 km=0.424/sp=0.493 kNN1=0.915
+  seed2024 N= 30: bursts/af= 50 (n=400) oracle-K@8 km=0.523/sp=0.540 kNN1=0.948
+  seed2024 N= 50: bursts/af= 30 (n=240) oracle-K@8 km=0.733/sp=0.756 kNN1=0.946
+  seed2024 N= 80: bursts/af= 18 (n=144) oracle-K@8 km=0.782/sp=0.834 kNN1=0.993
+  seed2024 N=120: bursts/af= 12 (n=96) oracle-K@8 km=0.895/sp=0.891 kNN1=0.990
+
+  N* = 120 (primary seed2024: best oracle-K=0.895, smallest N within 0.03)
+  [exhaustion] at largest N=120: bursts/af=12 oracle-K=0.895 (vs best 0.895). oracle-K holds -> the old N=200 collapse was BURST-COUNT EXHAUSTION (per-seg fallback), not an averaging limit
+
+==============================================================================
+STEP 2 — K-estimation bake-off at N*=120 (8-way + K=4 battery)
+==============================================================================
+  seed2024  K8   eigengap: correctK=0.000 |Kerr|=1.00 ARI@K=0.746 (n=1)
+  seed2024  K8  stability: correctK=0.000 |Kerr|=6.00 ARI@K=0.072 (n=1)
+  seed2024  K8 silhouette: correctK=0.000 |Kerr|=6.00 ARI@K=0.072 (n=1)
+  seed2024  K8    gmm_bic: correctK=0.000 |Kerr|=6.00 ARI@K=0.072 (n=1)
+  seed2024  K8    hdbscan: correctK=0.000 |Kerr|=4.00 ARI@K=0.445 (n=1)
+  seed2024  K4   eigengap: correctK=0.471 |Kerr|=0.57 ARI@K=0.800 (n=70)
+  seed2024  K4  stability: correctK=0.100 |Kerr|=1.56 ARI@K=0.477 (n=70)
+  seed2024  K4 silhouette: correctK=0.200 |Kerr|=1.41 ARI@K=0.524 (n=70)
+  seed2024  K4    gmm_bic: correctK=0.000 |Kerr|=2.00 ARI@K=0.338 (n=70)
+  seed2024  K4    hdbscan: correctK=0.471 |Kerr|=0.77 ARI@K=0.722 (n=70)
+
+  PRE-COMMIT (rule = max K4 scenario-success on primary seed2024, tie-break 8-way success then |Kerr|):
+      eigengap: K4-success=0.471 K8-success=0.000 |Kerr|K4=0.57
+     stability: K4-success=0.100 K8-success=0.000 |Kerr|K4=1.56
+    silhouette: K4-success=0.200 K8-success=0.000 |Kerr|K4=1.41
+       gmm_bic: K4-success=0.000 K8-success=0.000 |Kerr|K4=2.00
+       hdbscan: K4-success=0.471 K8-success=0.000 |Kerr|K4=0.77
+  --> CHOSEN K-ESTIMATOR = eigengap
+
+==============================================================================
+STEP 3 — demo scenario success (eigengap, N*=120)
+==============================================================================
+  seed1234  K8 (K=8): unassisted=1.000 assisted=1.000 (n=1)
+  seed1234  K4 (K=4): unassisted=0.500 assisted=0.929 (n=70)
+  seed1234  K3 (K=3): unassisted=0.661 assisted=0.929 (n=56)
+  seed2024  K8 (K=8): unassisted=0.000 assisted=1.000 (n=1)
+  seed2024  K4 (K=4): unassisted=0.471 assisted=1.000 (n=70)
+  seed2024  K3 (K=3): unassisted=0.643 assisted=1.000 (n=56)
+
+=== GATE ===
+WORKABLE: K<=4 unassisted=0.661 (0.5-0.7) / assisted=1.000 -> ship with assisted mode (eigengap@N120).
+
+saved -> results/demo_play1b/ (nsweep.csv, kest_bakeoff.csv, scenario_success.csv, DEMO_OPERATING_POINT.md, report.json)
+CHECKPOINT — DEMO-side; eval-only; best_model.pt/TEST/M100 untouched.

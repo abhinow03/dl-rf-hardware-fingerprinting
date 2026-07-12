@@ -1,0 +1,6 @@
+# DEMO-SIDE — NOT PAPER RESULTS
+seed,feat_mode,sel_step,sel_composite,full8_hdb_ari,full8_hdb_kest,full8_oracle_km,full8_oracle_sp,full8_knn1,full8_gap,full8_n_bursts,full8_per_af,k4_mean_ari,k4_std_ari,k4_frac_ge0p6,k4_frac_correctK,k4_n_subsets
+1234,perseg,3500,1.5563,0.077,15.5,0.039,0.062,0.872,0.018,2000,250,0.123,0.059,0.0,0.0,70
+1234,N50,3500,1.5563,0.075,2.0,0.636,0.667,0.95,0.089,240,30,0.538,0.233,0.386,0.2,70
+2024,perseg,4000,1.553,0.054,13.5,0.041,0.055,0.827,0.015,2000,250,0.098,0.039,0.0,0.0,70
+2024,N50,4000,1.553,0.075,2.0,0.733,0.756,0.946,0.069,240,30,0.545,0.253,0.471,0.2,70

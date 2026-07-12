@@ -1,0 +1,357 @@
+{
+  "header": "DEMO-SIDE \u2014 NOT PAPER RESULTS",
+  "note": "DEMO-side engineering numbers; NEVER merged into paper tables.",
+  "gpu_used": false,
+  "data": "DRFF mavicAir2 (8) \u2014 cached seed-777 OPT-B F512 (features_B.npz) + reproduced windows for classical-19 (alignment VERIFIED) + native 50 MS/s segments for Lever 3",
+  "lever1": [
+    {
+      "lever": "L1",
+      "K": 4,
+      "N": 10,
+      "method": "classical-19",
+      "n_subsets": 70,
+      "hdb_ari_mean": 0.207,
+      "hdb_ari_std": 0.128,
+      "oracle_km_mean": 0.339,
+      "frac_correctK": 0.386,
+      "frac_ari_ge0.6": 0.0
+    },
+    {
+      "lever": "L1",
+      "K": 4,
+      "N": 10,
+      "method": "frozen-512",
+      "n_subsets": 70,
+      "hdb_ari_mean": 0.136,
+      "hdb_ari_std": 0.111,
+      "oracle_km_mean": 0.339,
+      "frac_correctK": 0.114,
+      "frac_ari_ge0.6": 0.0
+    },
+    {
+      "lever": "L1",
+      "K": 4,
+      "N": 10,
+      "method": "hybrid-pca64+19",
+      "n_subsets": 70,
+      "hdb_ari_mean": 0.176,
+      "hdb_ari_std": 0.116,
+      "oracle_km_mean": 0.282,
+      "frac_correctK": 0.329,
+      "frac_ari_ge0.6": 0.0
+    },
+    {
+      "lever": "L1",
+      "K": 3,
+      "N": 10,
+      "method": "classical-19",
+      "n_subsets": 56,
+      "hdb_ari_mean": 0.214,
+      "hdb_ari_std": 0.16,
+      "oracle_km_mean": 0.397,
+      "frac_correctK": 0.196,
+      "frac_ari_ge0.6": 0.0
+    },
+    {
+      "lever": "L1",
+      "K": 3,
+      "N": 10,
+      "method": "frozen-512",
+      "n_subsets": 56,
+      "hdb_ari_mean": 0.169,
+      "hdb_ari_std": 0.177,
+      "oracle_km_mean": 0.391,
+      "frac_correctK": 0.054,
+      "frac_ari_ge0.6": 0.0
+    },
+    {
+      "lever": "L1",
+      "K": 3,
+      "N": 10,
+      "method": "hybrid-pca64+19",
+      "n_subsets": 56,
+      "hdb_ari_mean": 0.179,
+      "hdb_ari_std": 0.152,
+      "oracle_km_mean": 0.334,
+      "frac_correctK": 0.196,
+      "frac_ari_ge0.6": 0.0
+    }
+  ],
+  "lever2": [
+    {
+      "lever": "L2",
+      "scope": "full8",
+      "K": 8,
+      "N": "10",
+      "tag": "N=10",
+      "method": "classical-19",
+      "n": 1,
+      "hdb_ari_mean": 0.116,
+      "oracle_km_mean": 0.207,
+      "kest_mean": 2.0
+    },
+    {
+      "lever": "L2",
+      "scope": "full8",
+      "K": 8,
+      "N": "10",
+      "tag": "N=10",
+      "method": "hybrid-pca64+19",
+      "n": 1,
+      "hdb_ari_mean": 0.165,
+      "oracle_km_mean": 0.244,
+      "kest_mean": 2.5
+    },
+    {
+      "lever": "L2",
+      "scope": "full8",
+      "K": 8,
+      "N": "50",
+      "tag": "N=50",
+      "method": "classical-19",
+      "n": 1,
+      "hdb_ari_mean": 0.311,
+      "oracle_km_mean": 0.586,
+      "kest_mean": 3.0
+    },
+    {
+      "lever": "L2",
+      "scope": "full8",
+      "K": 8,
+      "N": "50",
+      "tag": "N=50",
+      "method": "hybrid-pca64+19",
+      "n": 1,
+      "hdb_ari_mean": 0.234,
+      "oracle_km_mean": 0.326,
+      "kest_mean": 2.5
+    },
+    {
+      "lever": "L2",
+      "scope": "full8",
+      "K": 8,
+      "N": "200",
+      "tag": "N=200->per-seg(fallback)",
+      "method": "classical-19",
+      "n": 1,
+      "hdb_ari_mean": 0.03,
+      "oracle_km_mean": 0.046,
+      "kest_mean": 5.5
+    },
+    {
+      "lever": "L2",
+      "scope": "full8",
+      "K": 8,
+      "N": "200",
+      "tag": "N=200->per-seg(fallback)",
+      "method": "hybrid-pca64+19",
+      "n": 1,
+      "hdb_ari_mean": 0.074,
+      "oracle_km_mean": 0.082,
+      "kest_mean": 9.0
+    },
+    {
+      "lever": "L2",
+      "scope": "full8",
+      "K": 8,
+      "N": "perseg",
+      "tag": "per-segment",
+      "method": "classical-19",
+      "n": 1,
+      "hdb_ari_mean": 0.03,
+      "oracle_km_mean": 0.046,
+      "kest_mean": 5.5
+    },
+    {
+      "lever": "L2",
+      "scope": "full8",
+      "K": 8,
+      "N": "perseg",
+      "tag": "per-segment",
+      "method": "hybrid-pca64+19",
+      "n": 1,
+      "hdb_ari_mean": 0.074,
+      "oracle_km_mean": 0.082,
+      "kest_mean": 9.0
+    },
+    {
+      "lever": "L2",
+      "scope": "K4",
+      "K": 4,
+      "N": "10",
+      "tag": "N=10",
+      "method": "classical-19",
+      "n": 70,
+      "hdb_ari_mean": 0.207,
+      "oracle_km_mean": 0.339,
+      "kest_mean": 4.09
+    },
+    {
+      "lever": "L2",
+      "scope": "K4",
+      "K": 4,
+      "N": "10",
+      "tag": "N=10",
+      "method": "hybrid-pca64+19",
+      "n": 70,
+      "hdb_ari_mean": 0.176,
+      "oracle_km_mean": 0.282,
+      "kest_mean": 3.07
+    },
+    {
+      "lever": "L2",
+      "scope": "K4",
+      "K": 4,
+      "N": "50",
+      "tag": "N=50",
+      "method": "classical-19",
+      "n": 70,
+      "hdb_ari_mean": 0.44,
+      "oracle_km_mean": 0.808,
+      "kest_mean": 2.44
+    },
+    {
+      "lever": "L2",
+      "scope": "K4",
+      "K": 4,
+      "N": "50",
+      "tag": "N=50",
+      "method": "hybrid-pca64+19",
+      "n": 70,
+      "hdb_ari_mean": 0.299,
+      "oracle_km_mean": 0.548,
+      "kest_mean": 2.01
+    },
+    {
+      "lever": "L2",
+      "scope": "K4",
+      "K": 4,
+      "N": "200",
+      "tag": "N=200->per-seg(fallback)",
+      "method": "classical-19",
+      "n": 70,
+      "hdb_ari_mean": 0.054,
+      "oracle_km_mean": 0.039,
+      "kest_mean": 7.49
+    },
+    {
+      "lever": "L2",
+      "scope": "K4",
+      "K": 4,
+      "N": "200",
+      "tag": "N=200->per-seg(fallback)",
+      "method": "hybrid-pca64+19",
+      "n": 70,
+      "hdb_ari_mean": 0.048,
+      "oracle_km_mean": 0.045,
+      "kest_mean": 5.29
+    },
+    {
+      "lever": "L2",
+      "scope": "K4",
+      "K": 4,
+      "N": "perseg",
+      "tag": "per-segment",
+      "method": "classical-19",
+      "n": 70,
+      "hdb_ari_mean": 0.054,
+      "oracle_km_mean": 0.039,
+      "kest_mean": 7.49
+    },
+    {
+      "lever": "L2",
+      "scope": "K4",
+      "K": 4,
+      "N": "perseg",
+      "tag": "per-segment",
+      "method": "hybrid-pca64+19",
+      "n": 70,
+      "hdb_ari_mean": 0.048,
+      "oracle_km_mean": 0.045,
+      "kest_mean": 5.29
+    }
+  ],
+  "lever3": [
+    {
+      "lever": "L3",
+      "feature": "classical-19(25MS/s,per-seg)",
+      "scope": "full8",
+      "K": 8,
+      "n": 1,
+      "hdb_ari_mean": 0.03,
+      "oracle_km_mean": 0.046,
+      "frac_correctK": 0.0
+    },
+    {
+      "lever": "L3",
+      "feature": "classical-19(25MS/s,per-seg)",
+      "scope": "K4",
+      "K": 4,
+      "n": 70,
+      "hdb_ari_mean": 0.054,
+      "oracle_km_mean": 0.039,
+      "frac_correctK": 0.0
+    },
+    {
+      "lever": "L3",
+      "feature": "fullband-native(50MS/s)",
+      "scope": "full8",
+      "K": 8,
+      "n": 1,
+      "hdb_ari_mean": 0.03,
+      "oracle_km_mean": 0.086,
+      "frac_correctK": 0.0
+    },
+    {
+      "lever": "L3",
+      "feature": "fullband-native(50MS/s)",
+      "scope": "K4",
+      "K": 4,
+      "n": 70,
+      "hdb_ari_mean": 0.06,
+      "oracle_km_mean": 0.069,
+      "frac_correctK": 0.114
+    },
+    {
+      "lever": "L3",
+      "feature": "fullband(+)encoder-block",
+      "scope": "full8",
+      "K": 8,
+      "n": 1,
+      "hdb_ari_mean": 0.038,
+      "oracle_km_mean": 0.057,
+      "frac_correctK": 0.0
+    },
+    {
+      "lever": "L3",
+      "feature": "fullband(+)encoder-block",
+      "scope": "K4",
+      "K": 4,
+      "n": 70,
+      "hdb_ari_mean": 0.053,
+      "oracle_km_mean": 0.037,
+      "frac_correctK": 0.071
+    }
+  ],
+  "lever3_feature_list": "cfo(global/traj mean/std/slope); env(mean/std/skew/kurt/papr/onset/ac1); psd(centroid/spread/skew/kurt/flatness/rolloff85/95); band(outer_frac/q0-3); iq(pow_ratio/corr/gain_imb/phase_skew); logPSD-poly(6)+spec_entropy+kurtI+kurtQ = 36 dims (FIXED)",
+  "n_curve_hybrid_full8": [
+    [
+      "10",
+      0.165
+    ],
+    [
+      "50",
+      0.234
+    ],
+    [
+      "200",
+      0.074
+    ],
+    [
+      "perseg",
+      0.074
+    ]
+  ],
+  "gate": "NOT gated. Best K4 deployable: classical-19 [K4/N50] HDB ARI=0.44 (correctK best 0.386); best K3 HDB ARI=0.214 (classical-19).",
+  "guardrails": "eval-only; NO GPU/training; cached F512 + CPU classical; fixed battery (no alpha/feature selection); paper tables untouched (separate ledger); TEST/board-18 CLOSED; M100 untouched."
+}

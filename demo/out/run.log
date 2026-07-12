@@ -1,0 +1,64 @@
+================================================================================
+CAPSTONE DEMO BUILD — encoder seed2024 (frozen), R=4, N*=120, repeats=5
+  operating point: native 4096@50MS/s -> 512-D head-free -> mean-pool+L2 track -> eigengap/assisted-K -> spectral partition
+================================================================================
+  T1   mixed-model  unassisted  K=4: success=1.000  mean_ARI=1.000  K_est=[4, 4, 4, 4, 4]  ARI=[1.0, 1.0, 1.0, 1.0, 1.0]
+  T1   mixed-model  assisted    K=4: success=1.000  mean_ARI=1.000  K_est=[4, 4, 4, 4, 4]  ARI=[1.0, 1.0, 1.0, 1.0, 1.0]
+  T2a  same-model   unassisted  K=3: success=1.000  mean_ARI=1.000  K_est=[3, 3, 3, 3, 3]  ARI=[1.0, 1.0, 1.0, 1.0, 1.0]
+  T2a  same-model   assisted    K=3: success=1.000  mean_ARI=1.000  K_est=[3, 3, 3, 3, 3]  ARI=[1.0, 1.0, 1.0, 1.0, 1.0]
+  T2b  same-model   unassisted  K=4: success=1.000  mean_ARI=1.000  K_est=[4, 4, 4, 4, 4]  ARI=[1.0, 1.0, 1.0, 1.0, 1.0]
+  T2b  same-model   assisted    K=4: success=1.000  mean_ARI=1.000  K_est=[4, 4, 4, 4, 4]  ARI=[1.0, 1.0, 1.0, 1.0, 1.0]
+
+================================================================================
+CHECKPOINT — DEMO BUILD
+================================================================================
+
+SCENARIO RESULTS (success = correctK & ARI>=0.6 [unassisted] / ARI>=0.6 [assisted]):
+  scen tier         mode        K  success  meanARI  
+  T1   mixed-model  unassisted  4  1.0      1.0      
+  T1   mixed-model  assisted    4  1.0      1.0      
+  T2a  same-model   unassisted  3  1.0      1.0      
+  T2a  same-model   assisted    3  1.0      1.0      
+  T2b  same-model   unassisted  4  1.0      1.0      
+  T2b  same-model   assisted    4  1.0      1.0      
+
+EXAMPLE ASSOCIATED JSON MESSAGE:
+{
+  "receiver_id": "rx0",
+  "track_id": "mini3pro_2__rx0__s0__rep0",
+  "timestamp": 0.0,
+  "embedding": "[512 floats: -0.0742, 0.0145, ...]",
+  "rssi": -80.0,
+  "aoa_deg": 46.08,
+  "tdoa_ns": 0.0,
+  "n_windows": 120,
+  "class": "unknown",
+  "fingerprint_id": "d1"
+}
+
+ASSOCIATION TABLE (one T2 run):
+[T2a | assisted | rep0 | K_true=3]  ARI=1.0
+  d1: 4 tracks | true emitters grouped = ['mavicAir2_1']
+      mavicAir2_1__rx0__s0__rep0               rx0 [mavicAir2_1] n_win=120
+      mavicAir2_1__rx1__s0__rep0               rx1 [mavicAir2_1] n_win=120
+      mavicAir2_1__rx2__s0__rep0               rx2 [mavicAir2_1] n_win=120
+      mavicAir2_1__rx3__s0__rep0               rx3 [mavicAir2_1] n_win=120
+  d2: 4 tracks | true emitters grouped = ['mavicAir2_2']
+      mavicAir2_2__rx0__s1__rep0               rx0 [mavicAir2_2] n_win=120
+      mavicAir2_2__rx1__s1__rep0               rx1 [mavicAir2_2] n_win=120
+      mavicAir2_2__rx2__s1__rep0               rx2 [mavicAir2_2] n_win=120
+      mavicAir2_2__rx3__s1__rep0               rx3 [mavicAir2_2] n_win=120
+  d3: 4 tracks | true emitters grouped = ['mavicAir2_3']
+      mavicAir2_3__rx0__s2__rep0               rx0 [mavicAir2_3] n_win=120
+      mavicAir2_3__rx1__s2__rep0               rx1 [mavicAir2_3] n_win=120
+      mavicAir2_3__rx2__s2__rep0               rx2 [mavicAir2_3] n_win=120
+      mavicAir2_3__rx3__s2__rep0               rx3 [mavicAir2_3] n_win=120
+
+GATES:
+  G1: PASS — T1 unassisted=1.000 assisted=1.000 (need both >=0.8)
+  G2: PASS — T2 assisted=[1.0, 1.0] (need min >=0.8)
+  G3: PASS — label-free runtime proof (geo/id-invariant clustering) passed 3/3 representative runs
+  G4: PASS — contract: pre_errs=0 post_errs=0 emb512=True fingerprint_id_only_at_base=True
+
+saved -> ../summer_work/results/demo_build/scenario_results.csv, report.json
+saved -> demo/out/associated_stream.jsonl, receiver_stream.jsonl
