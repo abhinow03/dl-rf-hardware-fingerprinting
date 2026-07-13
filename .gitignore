@@ -15,3 +15,8 @@ results_gen/
 demo/out/
 *.jsonl
 .ipynb_checkpoints/
+# ext-protocols: raw datasets + audit outputs never enter git (only the .md verdicts do)
+gen_rff/ext_protocols/data_raw/
+gen_rff/ext_protocols/audit_out/
+!gen_rff/ext_protocols/audit_out/
+!gen_rff/ext_protocols/audit_out/*.md
