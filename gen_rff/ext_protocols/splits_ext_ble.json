@@ -1,0 +1,248 @@
+{
+  "seed": 2026,
+  "perm": [
+    3,
+    16,
+    27,
+    21,
+    22,
+    24,
+    9,
+    12,
+    18,
+    25,
+    20,
+    29,
+    26,
+    6,
+    1,
+    11,
+    0,
+    17,
+    13,
+    2,
+    15,
+    14,
+    23,
+    8,
+    28,
+    19,
+    5,
+    30,
+    7,
+    4,
+    10
+  ],
+  "eval_units": [
+    3,
+    9,
+    12,
+    16,
+    21,
+    22,
+    24,
+    27
+  ],
+  "val_units": [
+    18,
+    25
+  ],
+  "train_units": [
+    0,
+    1,
+    2,
+    4,
+    5,
+    6,
+    7,
+    8,
+    10,
+    11,
+    13,
+    14,
+    15,
+    17,
+    19,
+    20,
+    23,
+    26,
+    28,
+    29,
+    30
+  ],
+  "train_collections": [
+    "Wired (indoors)/Ch1_R1",
+    "Wired (indoors)/Ch1_R2",
+    "Wired (indoors)/Ch2_R1",
+    "Wired (indoors)/Ch14_R1",
+    "Wired (indoors)/Ch32_R1",
+    "Wireless (Indoors)/Ch2",
+    "Wireless (Indoors)/R1",
+    "Wireless (Indoors)/R2"
+  ],
+  "eval_collections": [
+    "Wireless (outdoors)/Loc1",
+    "Wireless (outdoors)/Loc2",
+    "Wireless (outdoors)/Loc3",
+    "Wireless (outdoors)/Loc4"
+  ],
+  "receiver_arm": {
+    "fit_collections": [
+      "Wired (indoors)/Ch1_R1",
+      "Wireless (Indoors)/R1"
+    ],
+    "eval_collections": [
+      "Wired (indoors)/Ch1_R2",
+      "Wireless (Indoors)/R2"
+    ]
+  },
+  "splits": {
+    "canonical": {
+      "desc": "strict cross-condition: train wired+wireless-indoor, eval outdoor",
+      "train": {
+        "units": [
+          0,
+          1,
+          2,
+          4,
+          5,
+          6,
+          7,
+          8,
+          10,
+          11,
+          13,
+          14,
+          15,
+          17,
+          19,
+          20,
+          23,
+          26,
+          28,
+          29,
+          30
+        ],
+        "collections": [
+          "Wired (indoors)/Ch1_R1",
+          "Wired (indoors)/Ch1_R2",
+          "Wired (indoors)/Ch2_R1",
+          "Wired (indoors)/Ch14_R1",
+          "Wired (indoors)/Ch32_R1",
+          "Wireless (Indoors)/Ch2",
+          "Wireless (Indoors)/R1",
+          "Wireless (Indoors)/R2"
+        ]
+      },
+      "val": {
+        "units": [
+          18,
+          25
+        ],
+        "collections": [
+          "Wired (indoors)/Ch1_R1",
+          "Wired (indoors)/Ch1_R2",
+          "Wired (indoors)/Ch2_R1",
+          "Wired (indoors)/Ch14_R1",
+          "Wired (indoors)/Ch32_R1",
+          "Wireless (Indoors)/Ch2",
+          "Wireless (Indoors)/R1",
+          "Wireless (Indoors)/R2"
+        ]
+      },
+      "eval": {
+        "units": [
+          3,
+          9,
+          12,
+          16,
+          21,
+          22,
+          24,
+          27
+        ],
+        "collections": [
+          "Wireless (outdoors)/Loc1",
+          "Wireless (outdoors)/Loc2",
+          "Wireless (outdoors)/Loc3",
+          "Wireless (outdoors)/Loc4"
+        ]
+      }
+    },
+    "diagnostic": {
+      "desc": "matched-condition upper bound (report as diagnostic, never headline)",
+      "eval": {
+        "units": [
+          3,
+          9,
+          12,
+          16,
+          21,
+          22,
+          24,
+          27
+        ],
+        "collections": [
+          "Wired (indoors)/Ch1_R1",
+          "Wired (indoors)/Ch1_R2",
+          "Wired (indoors)/Ch2_R1",
+          "Wired (indoors)/Ch14_R1",
+          "Wired (indoors)/Ch32_R1",
+          "Wireless (Indoors)/Ch2",
+          "Wireless (Indoors)/R1",
+          "Wireless (Indoors)/R2"
+        ]
+      }
+    },
+    "receiver_disjoint": {
+      "desc": "pre-registered Rx arm: fit R1-only, eval R2-only, eval_units",
+      "fit": {
+        "units": [
+          3,
+          9,
+          12,
+          16,
+          21,
+          22,
+          24,
+          27
+        ],
+        "collections": [
+          "Wired (indoors)/Ch1_R1",
+          "Wireless (Indoors)/R1"
+        ]
+      },
+      "eval": {
+        "units": [
+          3,
+          9,
+          12,
+          16,
+          21,
+          22,
+          24,
+          27
+        ],
+        "collections": [
+          "Wired (indoors)/Ch1_R2",
+          "Wireless (Indoors)/R2"
+        ]
+      }
+    }
+  },
+  "segment_counts": {
+    "canonical/train": 400951,
+    "canonical/val": 38400,
+    "canonical/eval": 73943,
+    "diagnostic/eval": 153600,
+    "recv/fit(R1)": 38400,
+    "recv/eval(R2)": 38400
+  },
+  "assertions": {
+    "A1_eval_unit_disjoint": true,
+    "A2_no_eval_rows_in_trainval": true,
+    "A3_no_outdoor_in_trainval": true,
+    "A4_val_train_disjoint": true
+  },
+  "note": "authors' intra-collection train/test pooled then re-split on unit/collection axes"
+}

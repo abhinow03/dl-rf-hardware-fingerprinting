@@ -1,0 +1,52 @@
+# D2 BLE XIAO — fixity manifest (24 extracted .npy, Phase-0b)
+
+```
+4ad8240956d065e69d900f61e648a4e35fe83851dbcdacbbea6e2d53b0e019bc  ./Wired (indoors)/Ch14_R1/X_test.npy
+ae92a0896e7e84bf1c1b0fd3231eb9c418ed7bc25a496e8ca67c9fa9178c48a7  ./Wired (indoors)/Ch14_R1/X_train.npy
+04d8628c0ee00f1f66a8f7462e6eddaadebc6be3c315cbcb4963c52e59525135  ./Wired (indoors)/Ch14_R1/Y_test.npy
+94a99d77bedc27ac6e9f0f1b7fc12017591e2fc2c022d7e66b00f1b15e162a0a  ./Wired (indoors)/Ch14_R1/Y_train.npy
+942b17b7b6fb30b475edd04a4de2d6798a34ed0e66842a72fffc9ec9e3976674  ./Wired (indoors)/Ch1_R1/X_test.npy
+940d9d7bd2c4e3e014694b2a47debabd5e05a1530e3331f63cee8251ba946197  ./Wired (indoors)/Ch1_R1/X_train.npy
+6cb3aa3b2d164e92d70737609aeae64de0af346fada8183b0ee49a84464fbdaf  ./Wired (indoors)/Ch1_R1/Y_test.npy
+cf8689419c764f12166f4fb06cd2fc8c43c05b590db41db726a1b723c7acd2fa  ./Wired (indoors)/Ch1_R1/Y_train.npy
+0df9e58c877557006b2c81c1ca85fced09d726c4c232d97cd335c04573625237  ./Wired (indoors)/Ch1_R2/X_test.npy
+965cc0af611b2f8d9bab93f924870bdcc7f015242d0f1bb21b4f9c8e9dfb76ce  ./Wired (indoors)/Ch1_R2/X_train.npy
+638dba2f45d0564f5b09bf6dddea6d6f1dd34156a8649a77bd2079a3c30a762d  ./Wired (indoors)/Ch1_R2/Y_test.npy
+f5e88c359417a615b4b030414176cb5fb3c617bc1d601f73f5b15060c5a6b393  ./Wired (indoors)/Ch1_R2/Y_train.npy
+b760484282dcd5516b5bc80aabb3bafd68600b171fac3c9df0f2deb1cc6dcbdf  ./Wired (indoors)/Ch2_R1/X_test.npy
+c72c00cf380a6c02c94dab6caad7189671ac0336a9e7933d9e9d5b4dd0eab566  ./Wired (indoors)/Ch2_R1/X_train.npy
+145a3eeb16e18ed250c6b87034d9b8744a69f98d65a515c81ec99a02e74b0b69  ./Wired (indoors)/Ch2_R1/Y_test.npy
+ccd47d16b38db4aa0ba75766b62f47012f0915c1f2fd2fe42982e8083c8933ff  ./Wired (indoors)/Ch2_R1/Y_train.npy
+5275c143604533be4ec12c5be6ff70472facc4bf149c9536641944eb520257b9  ./Wired (indoors)/Ch32_R1/X_test.npy
+075f46e47099bf343bad87d5aa584211900d7ff177d1f82e6f68e6193c257439  ./Wired (indoors)/Ch32_R1/X_train.npy
+808015dd63d48f99922d3b435a335c718d888f8797b87401fcfb72c2fd5cf5ae  ./Wired (indoors)/Ch32_R1/Y_test.npy
+7b4b882a63e649cef4117435b16bcba28494d88ea10a551c1fe9877122e0bf76  ./Wired (indoors)/Ch32_R1/Y_train.npy
+9ec447f3d17067d2aa6db1f53eca18bab64024fd027fb85e3c9f782fc8c5173f  ./Wireless (Indoors)/Ch2/X_test.npy
+6b302c8d67bb5ac6e02c68bf50abb8ab00762880bb5e7785d1a3cca2fb2cc683  ./Wireless (Indoors)/Ch2/X_train.npy
+808015dd63d48f99922d3b435a335c718d888f8797b87401fcfb72c2fd5cf5ae  ./Wireless (Indoors)/Ch2/Y_test.npy
+7b4b882a63e649cef4117435b16bcba28494d88ea10a551c1fe9877122e0bf76  ./Wireless (Indoors)/Ch2/Y_train.npy
+af12028f29983af5f09c4187b395ee27720d1438f5f53d2c041dd06bccc5f792  ./Wireless (Indoors)/R1/X_test.npy
+6dc4df26b3f62fd168c2d69011be3302e41cf5714aedc69ef860c406eae1c728  ./Wireless (Indoors)/R1/X_train.npy
+808015dd63d48f99922d3b435a335c718d888f8797b87401fcfb72c2fd5cf5ae  ./Wireless (Indoors)/R1/Y_test.npy
+7b4b882a63e649cef4117435b16bcba28494d88ea10a551c1fe9877122e0bf76  ./Wireless (Indoors)/R1/Y_train.npy
+8b88d6a50175bc67b7929b3346987a1f3680dd021310cb5482eb34f134d76482  ./Wireless (Indoors)/R2/X_test.npy
+1924bc8098d7509629a085523d823e939c6bdafcab39ac189ed01436fbf8aa11  ./Wireless (Indoors)/R2/X_train.npy
+1e5496a315318125b4a66ee590da8e89ee85890a0b55ba1691e243d1adf09abe  ./Wireless (Indoors)/R2/Y_test.npy
+156600cee61a0f6d45a274692edb10d69104100ffa489a728704b8f3cde461e8  ./Wireless (Indoors)/R2/Y_train.npy
+da9f67edfda5e10c5e3c6f4174b75141345f375b10cc715d85dddd58ed7fa113  ./Wireless (outdoors)/Loc1/X_test.npy
+b30b93f8bf915b23b2fe25d1ea92d70915a69ffc6301908f36f884bbd4221aad  ./Wireless (outdoors)/Loc1/X_train.npy
+95abaf17c704669571170be87c6649955ee1406a19f9ce6647c1ef37079ece37  ./Wireless (outdoors)/Loc1/Y_test.npy
+6c77c783389e96eac08f3830e9844e61437b0f65355a7c9d583c2763391b9681  ./Wireless (outdoors)/Loc1/Y_train.npy
+f73c1d313238d52dab55cfb9078b7c273cd80e8ce1ce8d423893b5a088150ce0  ./Wireless (outdoors)/Loc2/X_test.npy
+5ca1241a27262dd8d1414f50912f9e24a82a0ca2e610c1c59eb0681eb5295d10  ./Wireless (outdoors)/Loc2/X_train.npy
+46d695084d1dae9280137e60f20fcfd18c925de6867b89974f557342156d5280  ./Wireless (outdoors)/Loc2/Y_test.npy
+9cb1577ecae1d0664afa323e38dd91a6c3badc2d9acb3172f47abebe8d93e014  ./Wireless (outdoors)/Loc2/Y_train.npy
+dc199e6fc0dc3a9486e9669490dd2ca92b151e6201d00637c7264f8f6b93d4a7  ./Wireless (outdoors)/Loc3/X_test.npy
+6c6dac71c489e3117e8edd0c225b247fdf013dbf49ae5049cda928b686bccdfd  ./Wireless (outdoors)/Loc3/X_train.npy
+c6b39e274e0b58e404b88c4aa8ed5bb34ca2afa82d413f8662d090d894edc890  ./Wireless (outdoors)/Loc3/Y_test.npy
+4815f9bcada7184b86cd6930094c68de5a423a4525028fdcbe2e98c8a897d16c  ./Wireless (outdoors)/Loc3/Y_train.npy
+3978207b96ef8d8893505797a9480d51a2abed6d7e900e7cff2d37d7955f9abc  ./Wireless (outdoors)/Loc4/X_test.npy
+6bb98bc6b2681f322246fe62bd2d3c98d07dada5e79ee5f5ca732cf927663472  ./Wireless (outdoors)/Loc4/X_train.npy
+d8ab1abe39677d623ac36b9dd181c5e90db71f200bae71252cc5d5fdd643032c  ./Wireless (outdoors)/Loc4/Y_test.npy
+ff128a4b22682168747ae1f85978c0a115a40c06fa8972204505a31ad67256fc  ./Wireless (outdoors)/Loc4/Y_train.npy
+```

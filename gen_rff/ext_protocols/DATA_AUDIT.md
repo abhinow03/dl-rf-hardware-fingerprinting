@@ -302,3 +302,84 @@ with the turn-on transient captured, clean ~22 dB SNR, and a constructible recei
 4. **Receiver-diversity re-test = enabled** (R1↔R2 pairs exist) — no deviation; add the arm.
 
 *Phase 0b end. No window specs, caching, or split files were written — that is Phase 1.*
+
+---
+---
+
+# PHASE 1 — D2 BLE PREPROCESSING + SPLITS (no training)
+
+*Run 2026-07-15 on mars-4090, CPU-only. Deliverables: `WINDOW_SPEC_BLE.md`,
+`splits_ext_ble.json`, B1 25 MS/s cache (docker volume). Scripts committed:
+`build_splits_ble.py`, `build_b1_cache_ble.py`.*
+
+## STEP 1 — plan file + hygiene
+- **`EXT_PROTOCOL_PLAN.md` located INSIDE the repo** at `gen_rff/ext_protocols/EXT_PROTOCOL_PLAN.md`
+  (repo root = `DL_model`, which holds `.git`; `summer_work/` is a subdir, not the root — no `mv`
+  needed). Committed this session and adopted as **AUTHORITY** for all ext-protocol work.
+  **sha256 = `cca5be513f5d426d10400bafc2129f153bdede201b0fe59f3c1d99d828e128bb`.**
+- **`.gitignore` self-negation fixed** (Phase-0b flag): the `audit_out/` block is now
+  `audit_out/*` + `!audit_out/*.md`. Verified with `git check-ignore`: `*.png` and the regenerable
+  `audit_d2_summary.json` are **ignored**; `audit_out/fixity_sha256.md` (fixity manifest, converted
+  `.txt`→`.md` so it stays tracked) and root `DATA_AUDIT.md` are **visible**.
+
+## STEP 2 — window spec (`WINDOW_SPEC_BLE.md`, committed)
+- **Native window = inherited**: authors' 1850-sample onset-aligned segments @ 6 MS/s (308.36 µs),
+  per-segment amplitude-normalized. No re-windowing, no burst detection. Transient **shape**
+  available, absolute **scale** not (Phase-0b caveat carried verbatim into the spec).
+- **1D branch** input `(B,2,1850)`; **2D branch** STFT `nperseg=128, hop=64` → `Zxx (B,128,27)` →
+  2 real planes → **`(B,2,F=128,T=27)`** (shapes printed from a real batch).
+- **Native arm = ZERO-COPY** — loaders mmap the existing `.npy` by `(collection,row)`; no window
+  cache written; fixity = Phase-0b `.npy` manifest.
+- **B1 arm** = resample 6→25 MS/s (polyphase 25/6) → 7709 samp → 256-windows stride 256 →
+  **30 win/seg**, mean-pool windows→segment embedding. Cache-size decision by numbers: **53.9 GB
+  < 80 GB gate → build full** (stride 128 would be 106 GB → breaches gate).
+
+## STEP 3 — splits (`splits_ext_ble.json`, sha256 `69ad8d946dfc902ba071582596c56603a6626508e52bdbf74e36538b2f426287`)
+Seed **2026** (logged). Unit axis: **eval_units(8)=[3,9,12,16,21,22,24,27]**,
+**val_units(2)=[18,25]**, **train_units(21)=** the remaining 21. Authors' intra-collection
+train/test **pooled** then re-split on unit/collection axes.
+
+| split | #units | #collections | #segments |
+|---|---|---|---|
+| canonical/train (wired+wireless-indoor) | 21 | 8 | 400951 |
+| canonical/val (train-collections) | 2 | 8 | 38400 |
+| **canonical/eval (outdoor Loc1–4)** | 8 | 4 | 73943 |
+| diagnostic/eval (matched-condition, upper bound) | 8 | 8 | 153600 |
+| recv/fit (R1: Wired Ch1_R1 + Wireless R1) | 8 | 2 | 38400 |
+| recv/eval (R2: Wired Ch1_R2 + Wireless R2) | 8 | 2 | 38400 |
+
+**Assertions (printed, all PASS):**
+- `[A1]` eval_units disjoint from train_units and val_units — **PASS**
+- `[A2]` zero eval_unit rows reachable from canonical train/val (train rows=400951, val=38400,
+  eval-labelled among them = **0**) — **PASS**
+- `[A3]` zero outdoor collections in canonical train/val — **PASS**
+- `[A4]` val_units disjoint from train_units — **PASS**
+
+*(Canonical eval = eval_units × outdoor only; outdoor is untouched by any train/val/selection
+signal. Diagnostic is matched-condition and reported as diagnostic, never headline. Receiver arm
+is pre-registered: fit R1-only, eval R2-only, eval_units only.)*
+
+## STEP 4 — B1 25 MS/s cache (docker volume; full fixity in `audit_out/b1_cache_fixity.md`)
+Resample 6→25 (polyphase 25/6): 1850→7709 samp; 256-window stride 256 → **30 win/seg**;
+`(N,30,2,256) float32` per collection. Location `/home/docker/pw26_akp_01/ext_cache/ble_b1_25msps/`.
+**12 files, 53.9 GB total, 26,322,540 windows, built in 187 s; 604 GB free after (≫ 20 GB floor).**
+Per-file sha256 recorded. Sample rows:
+
+| collection | segs | win/seg | total windows | size GB | sha256 (12) |
+|---|---|---|---|---|---|
+| Wired/Ch14_R1 | 73429 | 30 | 2202870 | 4.51 | bb8eab8cc6cf |
+| Wired/Ch1_R1 | 73984 | 30 | 2219520 | 4.55 | 5ce8e3c23a96 |
+| Wireless/R1 | 74400 | 30 | 2232000 | 4.57 | 8b0665587575 |
+| Wireless/Loc3 | 67745 | 30 | 2032350 | 4.16 | 003e1ada6687 |
+| … (12 total) | | | **26322540** | **53.9** | |
+
+*Native arm added ZERO bytes (zero-copy mmap of the source `.npy`).*
+
+## STEP 5 — loader smoke (no model forward)
+```
+[native] Wired/Ch1_R1   1D (64,2,1850) f32 · 2D-STFT (64,2,128,27) f32 · one-hot↔index PASS · 6.0 ms/64
+[native] Wireless/Loc1  1D (64,2,1850)      · 2D (64,2,128,27)          · 2.0 ms/64 (shape-stable outdoor)
+[b1]     Ch14_R1.npz     window (64,30,2,256) f32 → flat (1920,2,256) for frozen encoder · 2.2 ms/64 · 12/12 files
+```
+Native zero-copy dataset and B1 cache dataset both instantiate; 1D / 2D / B1-256 shapes as specified;
+one-hot→index round-trip verified; batch timings sub-10 ms. **No features, no training — Phase 2 next.**
