@@ -165,3 +165,140 @@ judgements above are therefore metadata-level, awaiting from-the-bytes confirmat
 
 **Bottom line:** dataset risk is resolved — **BLE is a GO, Zigbee is availability-gated (CONDITIONAL)**.
 No modelling investment should precede (a) freeing disk to > 100 GB and (b) resolving the D1 request.
+
+---
+---
+
+# PHASE 0b — D2 PHYSICAL AUDIT (from the bytes)
+
+*Run 2026-07-15 on mars-4090, CPU-only, read-only. Upgrades the D2 verdict from
+CONDITIONAL-metadata (Phase 0) to a **from-bytes** verdict. Script: `audit_d2.py`
+(committed); numeric artefacts + plots in `audit_out/` (gitignored). Storage constraint
+from Phase 0 no longer applies — data is already on disk.*
+
+> **Plan doc still absent.** The task names `EXT_PROTOCOL_PLAN.md` as authority and says it
+> is "now in repo." It is **not** present (`find` over repo, `~`, and the docker data tree →
+> empty). This audit again uses the self-contained task spec as authority; reconcile if the
+> plan doc is authored later.
+>
+> **`data_raw` symlink did not pre-exist** — created this session:
+> `gen_rff/ext_protocols/data_raw/ble_xiao -> /home/docker/pw26_akp_01/ext_data/ble_xiao`
+> (in-scope; gitignored). **No archive was present** — data arrived already extracted, so
+> "fixity as-received" is recorded as a **per-file sha256 manifest of the 24 extracted `.npy`**
+> (`audit_out/fixity_sha256.txt`), not an archive hash.
+
+## STEP 0 — storage
+```
+DATA vol : /dev/nvme0n1p1  916G  257G  613G free  30%  /home/docker   (ext4)   >> 20 GB floor OK
+/home    : /dev/nvme1n1p5  488G  441G   23G free  96%  /home                    >  15 GB floor OK (tight)
+```
+Dataset total ≈ 13 GB, entirely on the 613-GB-free DATA volume. Audit outputs (≈0.5 MB) on `/home`.
+
+## STEP 1 — provenance & fixity
+- **Provenance:** D2 = BLE **Seeed XIAO ESP32-C3 ×31**, Albousayri et al. (arXiv 2510.09940 /
+  CNS2025), OSU NetSTAR / Hamdaoui lab. Retrieved to `ext_data/ble_xiao/` (indoor-wired,
+  indoor-wireless, outdoor). `requirements.txt` present (author env; references OSU `nfs/hpc`).
+- **Fixity:** 24 `.npy` files hashed → `audit_out/fixity_sha256.txt`. Examples:
+  `Wired/Ch1_R1/X_train.npy 940d9d7b…`, `Wireless/R1/X_train.npy 6dc4df26…`,
+  `Wireless/Loc1/X_train.npy b30b93f8…`. (Note: the three perfectly-balanced collections
+  `Ch32_R1`, `Wireless/Ch2`, `Wireless/R1` share **identical Y** hashes `7b4b882a…`/`808015dd…`
+  — same 2000-per-unit label layout; their **X differ**. Expected, not a defect.)
+
+## STEP 2 — inventory (from bytes, not README)
+- **Format:** `X = (N, 2, 1850) float32` → I/Q, 2 channels × 1850 samples/window.
+  `Y = (N, 31) float64` one-hot (`sum==1` verified on every collection).
+- **Units:** **31 same-model units confirmed** — 31/31 present in **every** collection,
+  per-unit labels machine-readable (one-hot argmax). ~2000 segments/unit/collection.
+- **Axes (12 collections):** link **{Wired-indoor conducted, Wireless-indoor OTA, Wireless-outdoor OTA}**
+  × BLE **channel {Ch1, Ch2, Ch14, Ch32}** × **receiver {R1, R2}** × outdoor **location {Loc1–4}**.
+- **Rate:** documented **6 MS/s** (paper). Not embedded in the `.npy`; **consistent from bytes**
+  — 1850 samples = **308.3 µs**, and observed occupied BW ≈ 0.8 MHz (see STEP 3) fits BLE GFSK.
+
+| collection | N_train | N_test | units | per-unit (min..max) |
+|---|---|---|---|---|
+| Wired/Ch1_R1 | 61784 | 12200 | 31/31 | 1784..2000 |
+| Wired/Ch1_R2 | 62037 | 12200 | 31/31 | 2000..2037 |
+| Wired/Ch2_R1 | 62070 | 12000 | 31/31 | 1948..2122 |
+| Wired/Ch14_R1 | 61429 | 12000 | 31/31 | 1557..2000 |
+| Wired/Ch32_R1 | 62000 | 12400 | 31/31 | 2000..2000 |
+| Wireless/Ch2 | 62000 | 12400 | 31/31 | 2000..2000 |
+| Wireless/R1 | 62000 | 12400 | 31/31 | 2000..2000 |
+| Wireless/R2 | 61831 | 12200 | 31/31 | 1831..2000 |
+| Wireless/Loc1 | 61464 | 11600 | 31/31 | 1555..2022 |
+| Wireless/Loc2 | 60693 | 11400 | 31/31 | 1418..2045 |
+| Wireless/Loc3 | 57745 | 10000 | 31/31 | 832..2074 |
+| Wireless/Loc4 | 60165 | 11400 | 31/31 | 1188..2109 |
+
+Totals ≈ **735 k** train + **143 k** test segments. Data is **pre-segmented and pre-split
+per collection by the authors** — their intra-collection X_train/X_test split is **ignored**
+for cross-condition evaluation; Phase-1 builds cross-collection splits.
+
+## STEP 3 — IQ sanity (3 segments, 3 units, 3 collections; `audit_out/step3_iq_sanity.png`)
+- L=1850, **dur = 308.3 µs @ 6 MS/s**. `clip_frac ≈ 0` (no clipping); no DC-spike anomaly
+  (DC bin not elevated); no silent segments (seg peak-power tightly clustered).
+- **PSD/spectrogram:** single ~**0.75–0.84 MHz** occupied band (−10 dB) centred near baseband
+  (peak −0.05..−0.12 MHz) → **GFSK ~1 MHz channel structure confirmed**; spectrogram shows a
+  continuous constant-envelope tone-swing across the burst, consistent with BLE 1 Mbps GFSK.
+- **Normalization:** per-segment peak |z| ≈ **0.0284** with **CV 0.019** (p01 0.0274, p99 0.0300)
+  → data is **per-segment amplitude-normalized**; absolute power/scale is NOT recoverable.
+
+## STEP 4 — burst / transient integrity  *(the P6 pivot)*
+Energy-detector + mean-power-envelope over 3000 segments/collection
+(`audit_out/step4_mean_envelope.png`). Per-collection signature (normalized to body peak):
+window **start ≈ 0.001–0.005** (noise floor), reaches **50 % of peak by sample ~11–12**,
+**body ≈ 0.66–0.81** (constant-envelope, duty cycle **0.988**), **tail ≈ 0.002–0.005** (falloff).
+Onset first-crossing (20 % of seg peak) median **~10–11**, p10–p90 **8–12** — tightly registered.
+
+### CRITICAL QUESTION — TRANSIENT VERDICT (verbatim)
+> **The turn-on transient IS captured; the windows are NOT steady-state / mid-packet.**
+> Each 1850-sample (308.3 µs @ 6 MS/s) window is a **complete, onset-aligned BLE burst**: the
+> window opens at the **noise floor** (sample 0 ≈ 0.1–0.5 % of body power, ~23–30 dB down),
+> **ramps through the turn-on edge** to full power by sample ~11–12 (~2 µs), holds a
+> **constant-envelope GFSK body** across ~99 % of the window (duty cycle 0.988), then **falls
+> back to the noise floor** in the last ~5 samples. Pre-ramp noise is therefore present and the
+> onset is consistently registered near sample 0 across **all 31 units and all 12 collections**.
+> **Caveats (honest limits):** at 6 MS/s the onset is resolved to only ~12 samples (~2 µs), and
+> the data is per-segment amplitude-normalized — so the transient's **shape** is available to a
+> feature extractor but its absolute **amplitude/scale** is not; and the ~2 µs ramp cannot be
+> cleanly separated into device-PA turn-on vs receiver AGC/filter settling from the bytes alone.
+
+## STEP 5 — SNR + session axis
+- **SNR** (constant-envelope body vs silent window edges): median **20–23 dB** on every
+  collection, p10–p90 ≈ **17–28 dB**. High and uniform; outdoor ≈ wired (SNR was not the
+  variable — the environment/location axes vary channel/multipath, not receive SNR).
+- **What varies across the session axis:** **receiver (R1/R2), BLE channel (Ch1/2/14/32),
+  link type (conducted vs OTA), environment (indoor/outdoor), and outdoor location (Loc1–4).**
+  **No calendar-day/timestamp axis is present in the bytes** (no time metadata in the `.npy`).
+- **Split control:** our session-disjoint split therefore controls **receiver / channel /
+  environment / location** confounds — i.e. "session" = **capture condition**, NOT day.
+  A same-condition-different-**day** (temporal-drift) split is **NOT constructible** here.
+- **Receiver-disjoint arm IS constructible** (the plan's receiver-diversity re-test): channel-
+  matched Rx pairs exist — **Wired Ch1_R1 ↔ Ch1_R2** and **Wireless R1 ↔ R2** — train on one
+  receiver, test on the other. ✅ enable this arm in Phase 1.
+
+## STEP 6 — updated D2 verdict (C1–C5 from bytes)
+
+| C | check | from-bytes result |
+|---|---|---|
+| **C1** | Raw IQ (not symbols/CSI/RSSI) | **✓** `(N,2,1850)` float I/Q time series. *Note: pre-segmented into burst windows + per-seg amplitude-normalized — raw IQ, but pre-conditioned.* |
+| **C2** | ≥8 same-model units, per-unit labels | **✓✓** 31 units, one-hot verified, 31/31 in every collection, ~2000 seg/unit. |
+| **C3** | ≥2 sessions, session-disjoint splits | **✓ (condition-disjoint)** 12 collections over receiver/channel/env/location → disjoint splits constructible. **✗ calendar-day** axis absent — "session" = condition, not day. |
+| **C4** | Documented rate + capture chain | **✓** 6 MS/s / B210 / GNURadio documented; consistent from bytes (308 µs, ~0.8 MHz GFSK). Rate not self-described in files (minor). |
+| **C5** | License permits research; downloadable | **✓** on disk, obtained. Exact license text still to confirm on the OSU landing page (research-use per lab convention). |
+
+### D2 ROW — CONDITIONAL-metadata → **GO (from-bytes confirmed)**
+BLE is a confirmed **GO**. 31 same-model units, raw (pre-conditioned) IQ, onset-aligned bursts
+with the turn-on transient captured, clean ~22 dB SNR, and a constructible receiver-disjoint arm.
+
+### Flags that shape Phase 1 (deviations, stated up front)
+1. **Pre-windowed (L=1850) + amplitude-normalized by the authors.** Phase-1 windowing is bounded
+   by their 1850-sample burst window; **absolute-amplitude / power features are gone** — only
+   shape/relative features survive. **P6 transient line:** onset is present and aligned but coarse
+   (~12 samples ≈ 2 µs) and amplitude-normalized → use transient **shape**, not magnitude.
+2. **No day axis** → C3 met via condition-disjoint splits only; **do not claim temporal-drift
+   robustness** from D2. Build session-disjoint splits on **receiver/environment**.
+3. **Ignore the authors' intra-collection train/test split** for cross-condition eval; construct
+   cross-collection (receiver-/channel-/environment-disjoint) splits in Phase 1.
+4. **Receiver-diversity re-test = enabled** (R1↔R2 pairs exist) — no deviation; add the arm.
+
+*Phase 0b end. No window specs, caching, or split files were written — that is Phase 1.*
