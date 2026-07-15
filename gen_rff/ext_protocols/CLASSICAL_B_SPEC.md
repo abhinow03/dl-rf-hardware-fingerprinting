@@ -46,6 +46,11 @@ normalized-power coefficient; absolute scale is dead per Phase-0b and never used
 - **COMPARISON — global train-fit z-score** (mean/std fit on train_units×train_collections,
   applied everywhere). Standard baseline; does NOT mitigate receiver CFO shift. Both variants are
   reported in T3/T-RX.
+- **IQR-floor safeguard (amended 2026-07-15 at battery run, numerical only):** per-collection IQR
+  is floored at `0.25×(global-pool IQR)`. Required because `occ_bw` is Welch-bin-quantized
+  (23.4 kHz bins) and can have **IQR=0 within a single collection** (observed: Loc4), which made
+  `x/IQR` explode and destroyed clustering. This is a standard robust-scaler stability guard; it
+  changes no feature and no feature-selection decision (the 19-D set stays exactly as locked above).
 
 ## DEV evidence (train_units × train_collections ONLY — no eval contact)
 DEV set: 10,080 segs, 21 train units, 8 train collections. All 19 features finite, non-degenerate.
