@@ -242,3 +242,24 @@ spurious ARI≈0.010). This is a robust-scaler stability guard, not a results-tu
 reported but **not** used as headline — with per-collection-centered embeddings and few points at
 high N its kNN-graph is often disconnected (sklearn warns), making it unstable; k-means is the
 reliable oracle-K metric.
+
+## Phase 3c — Approach B / Arm B3 (native from-scratch SupCon) on BLE D2
+
+**PRE-REGISTERED before any training (written 2026-07-16, BEFORE run):**
+Authority `EXT_PROTOCOL_PLAN.md` (cca5be51…), `splits_ext_ble.json` (69ad8d94…),
+`WINDOW_SPEC_BLE.md` (3541aad6…). Native dual-branch RFEncoder trained FRESH (random init),
+SupCon on unit labels, constant tau=0.5, NO augmentation (no CFO aug — doctrine; no time
+jitter — onset-aligned). 128-D L2-normalized head is the discovery embedding (native-arm
+precedent; cf. B1 used 512-D frozen encoder output). Trained on train_units(21) ×
+train_collections(8) = 400,951 segments.
+
+- **PRIMARY (P4 resolves here):** pooled-**diagnostic N=120 oracle-K ARI > 0.334** (B1 0.284 + 0.05)
+  — the one regime where a learned encoder still earns its keep.
+- **SECONDARY:** canonical N=120 ≥ 0.90 (parity band with B1 0.945); N=10 canonical reported vs A 0.925.
+- **P5 tested** via the N-sweep convergence band (does N=120 canonical converge into a band across
+  A / B1 / B3, or does one method escape it?).
+- **Mechanism hypothesis (logged, not a success gate):** SupCon positives spanning collections
+  (receivers/channels/links) inside balanced P×S batches push per-unit invariance to exactly the
+  axes that pool in the diagnostic regime → predicts the diagnostic gain over B1.
+
+*(Results, verdicts, and the three-way A/B1/B3 table are appended below after the run.)*
