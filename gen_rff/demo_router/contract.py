@@ -2,13 +2,20 @@
 
 One message per track. Crosses receiver -> router -> base-station. The receiver sets
 everything except `fingerprint_id`; the ROUTER sets `protocol`; the BASE STATION sets
-`fingerprint_id` (namespaced d<k>.<protocol>, e.g. d1.drone / d2.wifi). Ground-truth device
-identity is NEVER a field here (see scoring.py).
+`fingerprint_id` (namespaced d<k>.<protocol>, e.g. d1.drone / d2.wifi / d3.ble). Ground-truth
+device identity is NEVER a field here (see scoring.py).
+
+Phase-5 amendment: the embedding dimension is PER PROTOCOL. Deep tiers (T-A/T-B/T-C) emit
+512-D; the BLE native tier (T-D) emits 128-D. EMB_DIM stays the legacy default (512) and
+EMB_DIM_BY_PROTO carries the per-protocol contract; validators check length against the
+message's own protocol when present.
 
 DEMO-SIDE — NOT PAPER RESULTS.
 """
-EMB_DIM = 512
-PROTOCOLS = {"wifi", "drone_ocusync", "unknown"}
+EMB_DIM = 512                                   # legacy default (deep tiers)
+EMB_DIM_BY_PROTO = {"wifi": 512, "drone_ocusync": 512, "unknown": 512, "ble": 128}
+_ALLOWED_DIMS = set(EMB_DIM_BY_PROTO.values())  # accepted when protocol not yet known
+PROTOCOLS = {"wifi", "drone_ocusync", "unknown", "ble"}
 
 RECEIVER_FIELDS = {
     "receiver_id": str, "track_id": str, "timestamp": float,
@@ -20,6 +27,22 @@ ROUTER_FIELD = "protocol"        # str in PROTOCOLS, + "protocol_conf" float
 BASE_STATION_FIELD = "fingerprint_id"   # "d<k>.<protocol>" assigned per protocol group
 
 
+def _emb_len_error(m):
+    """Per-protocol embedding-length check. Uses the message's protocol when present,
+    else accepts any contracted dim (receiver stage doesn't know the protocol yet)."""
+    emb = m.get("embedding")
+    if not isinstance(emb, list):
+        return None
+    proto = m.get(ROUTER_FIELD)
+    if proto in EMB_DIM_BY_PROTO:
+        want = EMB_DIM_BY_PROTO[proto]
+        if len(emb) != want:
+            return f"embedding len {len(emb)}!={want} (protocol '{proto}')"
+    elif len(emb) not in _ALLOWED_DIMS:
+        return f"embedding len {len(emb)} not in contracted dims {sorted(_ALLOWED_DIMS)}"
+    return None
+
+
 def validate_receiver_message(m):
     errs = []
     for k, t in RECEIVER_FIELDS.items():
@@ -29,8 +52,9 @@ def validate_receiver_message(m):
             continue
         if not isinstance(m[k], t):
             errs.append(f"'{k}' type {type(m[k]).__name__}!={t.__name__}")
-    if isinstance(m.get("embedding"), list) and len(m["embedding"]) != EMB_DIM:
-        errs.append(f"embedding len {len(m['embedding'])}!={EMB_DIM}")
+    e = _emb_len_error(m)
+    if e:
+        errs.append(e)
     if m.get("class") != "unknown":
         errs.append("class!='unknown'")
     if BASE_STATION_FIELD in m:
@@ -55,6 +79,7 @@ def validate_associated_message(m):
     fid = m.get(BASE_STATION_FIELD)
     if not isinstance(fid, str) or "." not in fid:
         errs.append("fingerprint_id must be namespaced 'd<k>.<protocol>'")
-    if isinstance(m.get("embedding"), list) and len(m["embedding"]) != EMB_DIM:
-        errs.append(f"embedding len!={EMB_DIM}")
+    e = _emb_len_error(m)
+    if e:
+        errs.append(e)
     return errs

@@ -16,7 +16,7 @@ import numpy as np
 from sklearn.metrics import adjusted_rand_score
 
 # map ground-truth protocol -> router label
-GT2ROUTE = {"drone": "drone_ocusync", "wifi": "wifi"}
+GT2ROUTE = {"drone": "drone_ocusync", "wifi": "wifi", "ble": "ble"}
 
 
 def routing_accuracy(messages, ground_truth, forced_unknown=False):

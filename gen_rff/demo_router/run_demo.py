@@ -1,8 +1,9 @@
-"""GEN-RFF PHASE 4 — protocol-router demo orchestrator.
+"""GEN-RFF PHASE 5 — protocol-router demo orchestrator (BLE tier integrated).
 
-Raw IQ -> tracker -> protocol router -> tier encoder -> accumulator -> per-protocol-group
-base-station discovery -> namespaced global IDs + JSON. Scenarios S1/S2/S3 x modes x 5 repeats.
-Ground truth confined to scoring.py. BUILD + SCENARIO VALIDATION ONLY — no training.
+Raw IQ -> tracker -> protocol router (rate-aware, 3-class + OOD) -> tier encoder (config-driven
+TIER_REGISTRY incl. T-D BLE native-128) -> accumulator -> per-protocol-group base-station
+discovery -> namespaced global IDs + JSON. Scenarios: S1/S2/S3 (regression) + S4 ble×K + S6
+grand-mixed. Ground truth confined to scoring.py. NO training here — frozen tiers only.
 
   OMP_NUM_THREADS=1 ... python3 -m gen_rff.demo_router.run_demo
 """
@@ -28,6 +29,8 @@ OUT_DIR = os.path.join(_DLM, "results_gen", "demo_router", "out")
 RES_DIR = os.path.join(_DLM, "results_gen", "demo_router")
 os.makedirs(OUT_DIR, exist_ok=True)
 R_RECV, NSTAR, REPEATS = 4, 120, 5
+
+GROUP_SUCCESS = {}     # (name, mode) -> {protocol: success_rate}  (report/gate side; not in CSV)
 
 
 def build_messages(tracks, gt, tiers, router, forced_unknown=False):
@@ -58,12 +61,15 @@ def true_K_by_group(full_msgs, gt):
     return {p: len(v) for p, v in g.items()}
 
 
-def run_scenario(name, emitters, tiers, router, forced_unknown=False, modes=("assisted", "unassisted")):
+def run_scenario(name, emitters, tiers, router, forced_unknown=False, modes=("assisted", "unassisted"),
+                 ble_collections=None):
     kt_proto = defaultdict(set)
     rows = []; example = None; assoc_dump = []
     per_mode = {m: [] for m in modes}
+    grp_succ = {m: defaultdict(list) for m in modes}
     for rep in range(REPEATS):
-        tracks, gt = replay.stream_tracks(emitters, R=R_RECV, N=NSTAR, repeat_seed=rep)
+        tracks, gt = replay.stream_tracks(emitters, R=R_RECV, N=NSTAR, repeat_seed=rep,
+                                          ble_collections=ble_collections)
         msgs, aux = build_messages(tracks, gt, tiers, router, forced_unknown=forced_unknown)
         route_acc = scoring.routing_accuracy(msgs, gt, forced_unknown=forced_unknown)
         full = [m for m in msgs if not m["partial"]]
@@ -87,6 +93,9 @@ def run_scenario(name, emitters, tiers, router, forced_unknown=False, modes=("as
                 succ = route_acc >= 0.95 and all(s["ari"] >= 0.6 for s in group_scores.values())
             else:
                 succ = route_acc >= 0.95 and all(s["correct_k"] and s["ari"] >= 0.6 for s in group_scores.values())
+            # per-group success (route ok AND that group's ari>=0.6) for per-protocol gates
+            for p, s in group_scores.items():
+                grp_succ[mode][p].append(bool(route_acc >= 0.95 and s["ari"] >= 0.6))
             per_mode[mode].append(dict(route_acc=route_acc, n_partial=n_partial,
                                        groups={p: dict(ari=group_scores[p]["ari"], K_est=group_scores[p]["K_est"],
                                                        K_true=group_scores[p]["K_true"]) for p in group_scores},
@@ -95,7 +104,6 @@ def run_scenario(name, emitters, tiers, router, forced_unknown=False, modes=("as
                 example = assoc[0]
                 for m in assoc:
                     mm = dict(m); mm["_run"] = f"{name}:{mode}:rep0"; assoc_dump.append(mm)
-                # capture one association table for the report
                 run_scenario._last_table = {p: scoring.format_association_table(group_scores[p]["association_table"])
                                             for p in group_scores}
     # aggregate
@@ -104,7 +112,6 @@ def run_scenario(name, emitters, tiers, router, forced_unknown=False, modes=("as
         succs = [r["success"] for r in recs if r["success"] is not None]
         rate = float(np.mean(succs)) if succs else float("nan")
         mean_route = float(np.mean([r["route_acc"] for r in recs]))
-        # mean per-group ARI (across repeats), per protocol
         arivals = defaultdict(list)
         for r in recs:
             for p, gs in r["groups"].items():
@@ -113,39 +120,129 @@ def run_scenario(name, emitters, tiers, router, forced_unknown=False, modes=("as
         rows.append(dict(scenario=name, mode=mode, repeats=REPEATS, route_acc=round(mean_route, 3),
                          success_rate=(round(rate, 3) if succs else "n/a (report-only)"),
                          mean_group_ari=mean_ari, n_partial=recs[0]["n_partial"]))
+        GROUP_SUCCESS[(name, mode)] = {p: round(float(np.mean(v)), 3) for p, v in grp_succ[mode].items()}
     return rows, example, assoc_dump
 
 
+# ---------------------------------------------------------------------------------------------
+def rate_fix_evidence(router):
+    """3a regression evidence: legacy 25 MS/s feature vector numerically UNCHANGED; drone 50 MS/s
+    scales the frequency-dimensioned features by exactly 2.0; BLE 6 MS/s by 6/25."""
+    tx = loaders.wisig_devices()[0][0]
+    wifi_win = replay.get_pool("wifi", tx)["Xt"][:60]
+    af = list(loaders.drff_airframes()[0])[0]
+    drone_win = replay.get_pool("drone", af)["Xt"][:60]
+
+    def norm_only(Xt):     # legacy bin-relative feature vector (rf forced to 1.0 == 25 MS/s)
+        return R.track_features(Xt, R.REF_RATE)
+    fdims = [0, 1, 3, 4, 8]   # cent, spread, roll, occ, hop  (frequency-dimensioned)
+    wifi_new = R.track_features(wifi_win, replay.RATE["wifi"])
+    wifi_leg = norm_only(wifi_win)
+    drone_new = R.track_features(drone_win, replay.RATE["drone"])
+    drone_leg = norm_only(drone_win)
+    ratio = []
+    for i in fdims:
+        denom = drone_leg[i] if abs(drone_leg[i]) > 1e-9 else 1e-9
+        ratio.append(round(float(drone_new[i] / denom), 4))
+    return dict(
+        wifi_unchanged_max_abs_delta=float(np.max(np.abs(wifi_new - wifi_leg))),
+        wifi_bitwise_identical=bool(np.array_equal(wifi_new, wifi_leg)),
+        drone_freqdim_ratio_new_over_legacy=ratio,                 # expect ~[2,2,2,2,2]
+        drone_expected_ratio=round(replay.RATE["drone"] / R.REF_RATE, 4),
+        ble_freq_scale=round(replay.RATE["ble"] / R.REF_RATE, 4))
+
+
+def g_fm(router):
+    """3c G-FM: canonical narrowband FM sweep at drone rate must route UNKNOWN. Report per-class
+    Mahalanobis distances (named risk: BLE may now be the nearest class)."""
+    fm = R.make_fm_sweep(replay.RATE["drone"], 4096, n_win=60)
+    feat = R.track_features(fm, replay.RATE["drone"])
+    proto, conf, dmin = router.route(feat)
+    dists = router.distances(feat)
+    nearest = min(dists, key=dists.get)
+    return dict(proto=proto, dmin=round(float(dmin), 3), thresh=round(float(router.ood_thresh), 3),
+                per_class=dists, nearest_class=nearest, pass_=bool(proto == "unknown"))
+
+
+def g_rt(router, tiers):
+    """3c G-RT: 4-class held-out routing accuracy (wifi / drone / ble / unknown-synthetic).
+    Labels used for SCORING ONLY. BLE side = eval_units tracks (never used to fit the router)."""
+    _, dev_tx, test_tx = loaders.wisig_devices()
+    rows = []   # (feat, true_label)
+    for tx in list(dev_tx)[:8]:
+        p = replay.get_pool("wifi", tx)["Xt"]
+        for t in range(min(6, len(p) // 60)):
+            rows.append((R.track_features(p[t * 60:(t + 1) * 60], replay.RATE["wifi"]), "wifi"))
+    for af in [f"mavicAir2_{i}" for i in (1, 2, 3, 4)]:
+        p = replay.get_pool("drone", af)["Xt"]
+        for t in range(min(8, len(p) // 60)):
+            rows.append((R.track_features(p[t * 60:(t + 1) * 60], replay.RATE["drone"]), "drone_ocusync"))
+    for u in R.BLE_EVAL_UNITS:
+        p = replay.get_ble_pool(u, R.BLE_EVAL_COLLECTIONS)["Xt"]
+        for t in range(min(6, len(p) // 60)):
+            rows.append((R.track_features(p[t * 60:(t + 1) * 60], replay.RATE["ble"]), "ble"))
+    for seed in range(6):
+        fm = R.make_fm_sweep(replay.RATE["drone"], 4096, n_win=60, seed=10 + seed)
+        rows.append((R.track_features(fm, replay.RATE["drone"]), "unknown"))
+    ok = 0; conf = defaultdict(lambda: defaultdict(int))
+    for feat, lab in rows:
+        pr = router.route(feat)[0]
+        ok += int(pr == lab)
+        conf[lab][pr] += 1
+    acc = ok / len(rows)
+    return dict(acc=round(float(acc), 4), n=len(rows), pass_=bool(acc >= 0.95),
+                confusion={k: dict(v) for k, v in conf.items()})
+
+
 def main():
-    print("=" * 80 + "\nGEN-RFF PHASE 4 — PROTOCOL-ROUTER DEMO\n" + "=" * 80)
-    # ---- fit router + R1 ----
-    print("[router] building training tracks (WiSig train vs DRFF non-mavicAir2) ...")
+    print("=" * 84 + "\nGEN-RFF PHASE 5 — PROTOCOL-ROUTER DEMO (BLE tier integrated)\n" + "=" * 84)
+    # ---- fit router (3-class rate-aware) + held-out R1 ----
+    print("[router] building training tracks (WiSig / DRFF non-mavicAir2 / BLE train_units) ...")
     X, y = R.build_training_tracks()
+    print(f"[router] train rows: wifi={int((y==0).sum())} drone={int((y==1).sum())} ble={int((y==2).sum())}")
     rng = np.random.default_rng(0); idx = rng.permutation(len(X))
     ntr = int(0.7 * len(X)); tr, te = idx[:ntr], idx[ntr:]
     router = R.ProtocolRouter().fit(X[tr], y[tr])
-    pred = np.array([R.LABELS.index(router.route(X[i])[0]) if router.route(X[i])[0] in R.LABELS else -1 for i in te])
-    r1_acc = float((pred == y[te]).mean())
-    # UNKNOWN smoke: synthetic FM sweep at drone rate (rate alone would misroute -> OOD must save it)
-    fm = R.make_fm_sweep(replay.RATE["drone"], 4096, n_win=60)
-    fm_proto, fm_conf, fm_d = router.route(R.track_features(fm, replay.RATE["drone"]))
-    r1_pass = r1_acc >= 0.95 and fm_proto == "unknown"
-    print(f"[R1] router held-out accuracy={r1_acc:.3f} (n={len(te)}); FM-sweep -> '{fm_proto}' "
-          f"(dist {fm_d:.2f} vs thresh {router.ood_thresh:.2f})  => {'PASS' if r1_pass else 'FAIL'}")
+
+    def _routed_label_idx(i):
+        pr = router.route(X[i])[0]
+        return R.LABELS.index(pr) if pr in R.LABELS else -1
+    r1_acc = float(np.mean([_routed_label_idx(i) == y[i] for i in te]))
+
+    ratefix = rate_fix_evidence(router)
+    print(f"[3a rate-fix] wifi bitwise-identical={ratefix['wifi_bitwise_identical']} "
+          f"(max|Δ|={ratefix['wifi_unchanged_max_abs_delta']:.2e}); drone freq-dim ratio="
+          f"{ratefix['drone_freqdim_ratio_new_over_legacy']} (expect {ratefix['drone_expected_ratio']})")
+
+    gfm = g_fm(router)
+    print(f"[3c G-FM] FM-sweep -> '{gfm['proto']}' dmin={gfm['dmin']} thresh={gfm['thresh']} "
+          f"nearest={gfm['nearest_class']} per-class={gfm['per_class']}  => {'PASS' if gfm['pass_'] else 'FAIL'}")
+    if not gfm["pass_"]:
+        print("\n*** G-FM FAILED — narrowband FM routed to a real class. Design checkpoint: reporting "
+              "distance table and STOPPING (no threshold hacking). ***")
+        json.dump(dict(gfm=gfm, ratefix=ratefix), open(os.path.join(RES_DIR, "phase5_GFM_FAIL.json"), "w"), indent=2)
+        return
+
+    grt = g_rt(router, None)
+    print(f"[3c G-RT] 4-class held-out routing acc={grt['acc']} (n={grt['n']}) => {'PASS' if grt['pass_'] else 'FAIL'}")
+    print(f"          confusion={grt['confusion']}")
 
     tiers = TI.Tiers()
     dev_tx = loaders.wisig_devices()[1]
-    S = {
+    ble_pool_cols = R.BLE_EVAL_COLLECTIONS          # pooled (demo-honest) variant
+    kU = R.BLE_EVAL_UNITS
+
+    # ---- S1–S3 REGRESSION (unchanged emitters/seeds) ----
+    S_reg = {
         "S1_drone3": [("drone", f"mavicAir2_{i}") for i in (1, 2, 3)],
         "S1_drone4": [("drone", f"mavicAir2_{i}") for i in (1, 2, 3, 4)],
         "S2_mixed": [("drone", "mavicAir2_1"), ("drone", "mavicAir2_2"), ("wifi", dev_tx[0]), ("wifi", dev_tx[1])],
         "S3_unknown": [("drone", "mavicAir2_1"), ("drone", "mavicAir2_2")],
     }
     all_rows = []; example_msg = None; dumps = []; tables = {}
-    for name, emitters in S.items():
+    for name, emitters in S_reg.items():
         fu = (name == "S3_unknown")
-        modes = ("assisted", "unassisted")
-        rows, ex, dump = run_scenario(name, emitters, tiers, router, forced_unknown=fu, modes=modes)
+        rows, ex, dump = run_scenario(name, emitters, tiers, router, forced_unknown=fu)
         all_rows += rows
         if example_msg is None and ex is not None:
             example_msg = ex
@@ -155,42 +252,92 @@ def main():
             print(f"  {name:<12} {r['mode']:<11} route={r['route_acc']} success={r['success_rate']} "
                   f"grpARI={r['mean_group_ari']} partial={r['n_partial']}")
 
-    # ---- label-confinement audit (runtime): base-station partition invariant to geo/id scramble ----
-    tr0, gt0 = replay.stream_tracks(S["S2_mixed"], R=R_RECV, N=NSTAR, repeat_seed=0)
-    m0, aux0 = build_messages(tr0, gt0, tiers, router)
-    full0 = [m for m in m0 if not m["partial"]]
-    a1, _ = BS.associate(full0, aux0, assisted_K={"drone_ocusync": 2, "wifi": 2})
-    scr = []
-    for i, m in enumerate(full0):
-        mm = dict(m); mm["rssi"] = 0.0; mm["aoa_deg"] = 0.0; mm["tdoa_ns"] = 0.0
-        mm["receiver_id"] = f"x{i}"; mm["track_id"] = f"x{i}"; scr.append(mm)
-    aux_scr = {f"x{i}": aux0.get(m["track_id"]) for i, m in enumerate(full0)}
-    a2, _ = BS.associate(scr, aux_scr, assisted_K={"drone_ocusync": 2, "wifi": 2})
-    from sklearn.metrics import adjusted_rand_score
-    lf = float(adjusted_rand_score(np.unique([m["fingerprint_id"] for m in a1], return_inverse=True)[1],
-                                   np.unique([m["fingerprint_id"] for m in a2], return_inverse=True)[1])) == 1.0
-    audit_line = ("LABEL-CONFINEMENT: ground_truth dict flows ONLY into scoring.* ; router.route takes "
-                  "features only; base_station.associate takes embeddings only (no gt arg). Runtime proof: "
-                  f"zeroing geo + scrambling ids leaves the partition identical (ARI==1: {lf}).")
-    print("\n" + audit_line)
+    # ---- S4 ble×K (single-collection canonical-like + pooled-collection demo-honest) ----
+    ble_example = None; s4_rows = []
+    for variant, cols in [("single", [R.BLE_EVAL_COLLECTIONS[0]]), ("pooled", ble_pool_cols)]:
+        for K in (2, 3, 4):
+            name = f"S4_ble_{variant}_K{K}"
+            emitters = [("ble", u) for u in kU[:K]]
+            rows, ex, dump = run_scenario(name, emitters, tiers, router, ble_collections=cols)
+            s4_rows += rows; all_rows += rows; dumps += dump
+            if variant == "pooled" and ble_example is None:
+                ble_example = ex
+            for r in rows:
+                print(f"  {name:<20} {r['mode']:<11} route={r['route_acc']} success={r['success_rate']} "
+                      f"grpARI={r['mean_group_ari']} partial={r['n_partial']}")
+
+    # ---- S6 grand-mixed: 2 drone + 2 wifi + 2 ble ----
+    s6_emitters = [("drone", "mavicAir2_1"), ("drone", "mavicAir2_2"),
+                   ("wifi", dev_tx[0]), ("wifi", dev_tx[1]),
+                   ("ble", kU[0]), ("ble", kU[1])]
+    s6_rows, s6_ex, s6_dump = run_scenario("S6_grand", s6_emitters, tiers, router, ble_collections=ble_pool_cols)
+    all_rows += s6_rows; dumps += s6_dump
+    for r in s6_rows:
+        print(f"  {'S6_grand':<20} {r['mode']:<11} route={r['route_acc']} success={r['success_rate']} "
+              f"grpARI={r['mean_group_ari']} partial={r['n_partial']}")
+    # cross-protocol ID collisions on the S6 assisted rep0 dump
+    s6_assoc = [m for m in s6_dump if m.get("_run", "").startswith("S6_grand:assisted")]
+    fids_by_proto = defaultdict(set)
+    for m in s6_assoc:
+        fids_by_proto[m["protocol"]].add(m["fingerprint_id"])
+    protos = list(fids_by_proto)
+    collisions = 0
+    for i in range(len(protos)):
+        for j in range(i + 1, len(protos)):
+            collisions += len(fids_by_proto[protos[i]] & fids_by_proto[protos[j]])
+    s6_table = getattr(run_scenario, "_last_table", {})
+
+    # ---- REGRESSION CHECK vs committed baseline (S1–S3) ----
+    import io
+    base_csv = os.path.join(RES_DIR, "scenario_results.csv")
+    prev = {}
+    if os.path.exists(base_csv):
+        with open(base_csv) as f:
+            for r in csv.DictReader(filter(lambda l: not l.startswith("#"), f)):
+                prev[(r["scenario"], r["mode"])] = r
+    reg = []
+    for r in all_rows:
+        if not r["scenario"].startswith(("S1", "S2", "S3")):
+            continue
+        key = (r["scenario"], r["mode"]); p = prev.get(key)
+        new_ari = r["mean_group_ari"]
+        old_ari = json.loads(p["mean_group_ari"]) if p else None
+        ari_ok = old_ari is not None and set(new_ari) == set(old_ari) and all(
+            abs(new_ari[k] - old_ari[k]) <= 0.02 for k in new_ari)
+        route_ok = p is not None and abs(float(p["route_acc"]) - r["route_acc"]) <= 0.02
+        succ_ok = p is not None and str(p["success_rate"]) == str(r["success_rate"])
+        reg.append(dict(cell=f"{key[0]}/{key[1]}", route_ok=route_ok, ari_ok=ari_ok, succ_ok=succ_ok,
+                        old_route=(p["route_acc"] if p else None), new_route=r["route_acc"],
+                        old_ari=old_ari, new_ari=new_ari,
+                        old_succ=(p["success_rate"] if p else None), new_succ=r["success_rate"]))
+    reg_pass = all(x["route_ok"] and x["ari_ok"] and x["succ_ok"] for x in reg)
 
     # ---- gates ----
-    def rate(name, mode):
+    def get_rate(name, mode):
         r = next(x for x in all_rows if x["scenario"] == name and x["mode"] == mode)
         return r["success_rate"], r["route_acc"]
     g = {}
-    s1_min = min(rate("S1_drone3", "assisted")[0], rate("S1_drone4", "assisted")[0])
-    g["G-S1"] = dict(pass_=bool(s1_min >= 0.8), detail=f"S1 assisted success min(3,4)={s1_min} (>=0.8)")
-    s2s, s2r = rate("S2_mixed", "assisted")
-    g["G-S2"] = dict(pass_=bool(s2r >= 0.95 and s2s >= 0.8), detail=f"S2 routing={s2r} (>=0.95) assisted success={s2s} (>=0.8)")
-    g["G-S3"] = dict(pass_=True, detail="reported (honesty tier, no bar)")
-    g["R1"] = dict(pass_=bool(r1_pass), detail=f"router acc={r1_acc:.3f} (>=0.95), FM->{fm_proto}")
+    g["R1"] = dict(pass_=bool(r1_acc >= 0.95), detail=f"router held-out acc={r1_acc:.3f} (>=0.95)")
+    g["G-FM"] = dict(pass_=gfm["pass_"], detail=f"FM->{gfm['proto']} nearest={gfm['nearest_class']} (dmin {gfm['dmin']}>thresh {gfm['thresh']})")
+    g["G-RT"] = dict(pass_=grt["pass_"], detail=f"4-class routing acc={grt['acc']} (>=0.95)")
+    g["G-REG"] = dict(pass_=bool(reg_pass), detail=f"S1–S3 reproduced ({sum(x['route_ok'] and x['ari_ok'] and x['succ_ok'] for x in reg)}/{len(reg)} cells)")
+    # S4 pooled gate (the gated variant): routing>=0.95 AND assisted success>=0.8 across K
+    s4_pool = [get_rate(f"S4_ble_pooled_K{K}", "assisted") for K in (2, 3, 4)]
+    s4_route_min = min(rt for _, rt in s4_pool); s4_succ_min = min(sc for sc, _ in s4_pool)
+    g["G-S4"] = dict(pass_=bool(s4_route_min >= 0.95 and s4_succ_min >= 0.8),
+                     detail=f"S4 pooled: min routing={s4_route_min} (>=0.95), min assisted success={s4_succ_min} (>=0.8)")
+    # S6 gate: routing>=0.95, per-group assisted success>=0.8, 0 cross-protocol collisions
+    s6_route = get_rate("S6_grand", "assisted")[1]
+    s6_grp = GROUP_SUCCESS[("S6_grand", "assisted")]
+    s6_grp_min = min(s6_grp.values()) if s6_grp else 0.0
+    g["G-S6"] = dict(pass_=bool(s6_route >= 0.95 and s6_grp_min >= 0.8 and collisions == 0),
+                     detail=f"S6 routing={s6_route} (>=0.95), per-group assisted success={s6_grp} (min>=0.8), collisions={collisions}")
 
-    # ---- contract validation on the dumped stream ----
+    # ---- contract validation on dumped stream (mixed 512/128 dims) ----
     pre_errs = sum(len(contract.validate_associated_message(m)) for m in dumps)
 
     # ---- save ----
-    with open(os.path.join(RES_DIR, "scenario_results.csv"), "w", newline="") as f:
+    with open(base_csv, "w", newline="") as f:
         f.write("# DEMO-SIDE — NOT PAPER RESULTS (gen_rff sandbox)\n")
         w = csv.DictWriter(f, fieldnames=["scenario", "mode", "repeats", "route_acc", "success_rate",
                                           "mean_group_ari", "n_partial"])
@@ -200,25 +347,35 @@ def main():
     with open(os.path.join(OUT_DIR, "associated_stream.jsonl"), "w") as f:
         for m in dumps:
             f.write(json.dumps(m) + "\n")
-    report = dict(header="GEN-RFF PHASE 4 — protocol-router demo (DEMO-SIDE, R&D sandbox)",
-                  R=R_RECV, Nstar=NSTAR, repeats=REPEATS, router_R1=dict(acc=r1_acc, fm=fm_proto, pass_=r1_pass),
-                  scenarios=all_rows, gates=g, label_confinement=audit_line,
-                  contract_assoc_errs=pre_errs, example_associated_message=example_msg,
-                  association_tables=tables)
-    json.dump(report, open(os.path.join(RES_DIR, "phase4_router_report.json"), "w"), indent=2, default=str)
 
+    report = dict(header="GEN-RFF PHASE 5 — protocol-router demo, BLE tier (DEMO-SIDE, R&D sandbox)",
+                  R=R_RECV, Nstar=NSTAR, repeats=REPEATS,
+                  tier_registry={p: {k: (v[k] if k != "ckpt" else os.path.relpath(v[k], _DLM))
+                                     for k in ("tier", "backend", "dim", "aux", "ckpt")}
+                                 for p, v in TI.TIER_REGISTRY.items()},
+                  router=dict(r1_acc=r1_acc, classes=[R.LABELS[c] for c in router.classes_],
+                              ood_thresh=router.ood_thresh),
+                  rate_fix=ratefix, g_fm=gfm, g_rt=grt,
+                  scenarios=all_rows, group_success={f"{k[0]}/{k[1]}": v for k, v in GROUP_SUCCESS.items()},
+                  regression=dict(pass_=reg_pass, cells=reg),
+                  s6_collisions=collisions, gates=g, contract_assoc_errs=pre_errs,
+                  example_deep_message=example_msg, example_ble_message=ble_example,
+                  s6_association_tables=s6_table)
+    json.dump(report, open(os.path.join(RES_DIR, "phase5_router_report.json"), "w"), indent=2, default=str)
+
+    print("\n=== REGRESSION (S1–S3 vs committed) ===", "PASS" if reg_pass else "FAIL")
+    for x in reg:
+        print(f"  {x['cell']:<24} route {x['old_route']}->{x['new_route']} ari {x['old_ari']}->{x['new_ari']} "
+              f"succ {x['old_succ']}->{x['new_succ']}  [{'ok' if x['route_ok'] and x['ari_ok'] and x['succ_ok'] else 'DIFF'}]")
     print("\n=== GATES ===")
     for k, v in g.items():
         print(f"  {k}: {'PASS' if v['pass_'] else 'FAIL'} — {v['detail']}")
-    print(f"  contract assoc errors: {pre_errs}")
-    print("\nEXAMPLE ASSOCIATED MESSAGE:")
-    em = dict(example_msg); em["embedding"] = f"[512 floats: {example_msg['embedding'][0]:.4f}, ...]"
-    print(json.dumps(em, indent=2))
-    if "S2_mixed" in tables:
-        print("\nS2 ASSOCIATION TABLES (assisted rep0):")
-        for p, t in tables["S2_mixed"].items():
-            print(f" [{p}]\n{t}")
-    print("\nsaved -> results_gen/demo_router/{scenario_results.csv, phase4_router_report.json}, out/associated_stream.jsonl")
+    print(f"  contract assoc errors (mixed 512/128): {pre_errs}")
+    if ble_example is not None:
+        em = dict(ble_example); em["embedding"] = f"[128 floats: {ble_example['embedding'][0]:.4f}, ...]"
+        print("\nEXAMPLE BLE ASSOCIATED MESSAGE (S4 pooled):")
+        print(json.dumps(em, indent=2))
+    print("\nsaved -> results_gen/demo_router/{scenario_results.csv, phase5_router_report.json}, out/associated_stream.jsonl")
 
 
 if __name__ == "__main__":

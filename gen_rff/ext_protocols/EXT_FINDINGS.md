@@ -228,3 +228,27 @@ transfer to the demo. **A is the zero-training CPU fallback** if no GPU/labels a
 is weak in the pooled regime (0.193). Honest caveat: B3's edge assumes labeled BLE units for training
 and a GPU at enrollment; both hold for the demo. *Router-side BLE spectral-stats routing class +
 Mahalanobis refit is Phase-5 work, out of scope here.*
+
+---
+
+## Phase 5 — Router integration: BLE tier (frozen asset registration)
+
+The B3 native encoder is now the **shipping BLE tier (T-D)** in the systems demo
+([demo_router README](../demo_router/README.md)). Its checkpoint is frozen off-repo alongside the
+other tier assets (gitignored `summer_work/runs/`, read-only) and is the canonical BLE encoder from
+here on. Demo router = registry refactor + `ble` routing class + Mahalanobis refit only; the locked
+battery (Phases 2–4) is untouched and no new eval-split experiments were run.
+
+### PROTECTED ASSETS (frozen; sha256 verified before/after)
+
+| asset | role | sha256 |
+|---|---|---|
+| `summer_work/runs/wisig_supcon_fft64/retrain_best/best_model.pt` | B1 transfer encoder / demo tiers T-B, T-C | `03898f49…` |
+| **`summer_work/runs/ble_native_s2024/best.pt`** | **B3 native / demo BLE tier T-D** (byte-identical copy of ext_cache B3 `full_s2024`) | **`f1d7745eaa72…`** |
+| `gen_rff/ext_protocols/EXT_PROTOCOL_PLAN.md` | locked plan | `cca5be51…` |
+| `gen_rff/ext_protocols/splits_ext_ble.json` | locked splits | `69ad8d94…` |
+
+**Why `full_s2024` (not `s1234`) is the frozen BLE tier:** the two full-data seeds are a near-tie on
+pooled discovery, but `full_s2024` carries a **+0.144 receiver-transfer margin** (T-RX), and the
+demo's base-station pooling is receiver-shaped (EF7) — so the receiver-robust seed is the correct
+shipping choice.

@@ -18,8 +18,34 @@ for _v in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "NUMEXP
 import numpy as np
 from gen_rff.data import loaders, registry
 
-RATE = {"drone": 50e6, "wifi": 25e6}
+# BLE D2 (Seeed XIAO ESP32-C3): native (2,1850) I/Q @ 6 MS/s, one dir per collection.
+BLE_ROOT = "/home/docker/pw26_akp_01/ext_data/ble_xiao"
+RATE = {"drone": 50e6, "wifi": 25e6, "ble": 6e6}
 _POOL = {}
+_BLE_POOL = {}
+
+
+def _ble_pool(unit, collections, cap_per_coll=2000):
+    """Windows for one BLE unit pooled across `collections`; seg = collection index (a physical
+    condition/location). Single-collection variant => 1 seg (canonical-like); pooled variant =>
+    4 outdoor segs mixed by the round-robin dealer (demo-honest, receiver-shaped, EF7). Read-only
+    on X_train rows of eval/held-out units — the frozen B3 encoder never saw these units."""
+    Xt, seg = [], []
+    for si, c in enumerate(collections):
+        d = os.path.join(BLE_ROOT, c)
+        X = np.load(f"{d}/X_train.npy", mmap_mode="r")
+        y = np.asarray(np.load(f"{d}/Y_train.npy", mmap_mode="r")).argmax(1)
+        idx = np.where(y == unit)[0][:cap_per_coll]
+        if len(idx):
+            Xt.append(np.asarray(X[idx]).astype(np.float32)); seg.append(np.full(len(idx), si))
+    return dict(Xt=np.concatenate(Xt), seg=np.concatenate(seg))
+
+
+def get_ble_pool(unit, collections):
+    key = (int(unit), tuple(collections))
+    if key not in _BLE_POOL:
+        _BLE_POOL[key] = _ble_pool(unit, list(collections))
+    return _BLE_POOL[key]
 
 
 def _drone_pool(af, cap=2000):
@@ -49,13 +75,14 @@ def get_pool(kind, device_id):
     return _POOL[key]
 
 
-def stream_tracks(emitters, R=4, N=120, repeat_seed=0):
+def stream_tracks(emitters, R=4, N=120, repeat_seed=0, ble_collections=None):
     """emitters: list of (kind, device_id). Returns (tracks, ground_truth).
       track: {track_id, receiver_id, scene_idx, Xt[n,2,L], n_windows, partial, sample_rate, timestamp}
-      ground_truth: {track_id: (kind, device_id)}."""
+      ground_truth: {track_id: (kind, device_id)}.
+    ble_collections: which BLE collections a 'ble' emitter draws from (single vs pooled variant)."""
     tracks, gt = [], {}
     for scene_idx, (kind, dev) in enumerate(emitters):
-        pool = get_pool(kind, dev)
+        pool = get_ble_pool(dev, ble_collections) if kind == "ble" else get_pool(kind, dev)
         segs = np.unique(pool["seg"]); rng = np.random.default_rng(repeat_seed * 1000 + scene_idx)
         rng.shuffle(segs)
         order = [w for s in segs for w in np.where(pool["seg"] == s)[0].tolist()]

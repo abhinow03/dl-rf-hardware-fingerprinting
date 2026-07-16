@@ -16,7 +16,7 @@ from sklearn.cluster import SpectralClustering, KMeans
 from sklearn.neighbors import kneighbors_graph
 from scipy.sparse.csgraph import laplacian
 
-_SHORT = {"wifi": "wifi", "drone_ocusync": "drone", "unknown": "unk"}
+_SHORT = {"wifi": "wifi", "drone_ocusync": "drone", "unknown": "unk", "ble": "ble"}
 
 
 def _unit(M):
