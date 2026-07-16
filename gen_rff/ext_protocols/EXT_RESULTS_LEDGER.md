@@ -95,9 +95,9 @@ most valuable retained family**.
 | training data required | **zero** (Approach A is unsupervised at deploy; structural T4 property) |
 
 ## Pre-registered prior check-ins
-- **P3 (A beats B1 frozen at low N cross-domain):** *A's number logged, awaiting B1 (Phase 3).*
-  Approach-A canonical discovery **k-means ARI = 0.863 (N=120), 0.925 (N=10)** is the floor B1
-  frozen-WiSig transfer must beat. Recorded now; verdict deferred to Phase 3.
+- **P3 (A beats B1 frozen at low N cross-domain):** *A's number logged in Phase 2; **verdict now
+  RESOLVED in Phase 3a below** (CONFIRMED at low N, inverts at high N).* Approach-A canonical discovery
+  **k-means ARI = 0.863 (N=120), 0.925 (N=10)** was the floor; B1 = 0.597 (N=10) / 0.945 (N=120).
 - **P6 VERDICT (BLE, from the F-TRANS ablation) — verbatim:**
   > **PARTIALLY REFUTED on BLE.** P6 predicted the individuating information on narrowband
   > protocols would concentrate in **CFO + transient envelope**. On BLE D2 at the burst-mean
@@ -112,6 +112,127 @@ most valuable retained family**.
   > **Caveat (Phase-0b):** the transient here is coarsely sampled (~2 µs / ~12 samples @ 6 MS/s)
   > and amplitude-normalized, so this is a **dataset-limited** refutation, not a universal claim
   > about BLE turn-on transients.
+
+## Phase 3a — Approach B / Arm B1 (frozen WiSig transfer, 512-D) on BLE D2
+
+Authority: `EXT_PROTOCOL_PLAN.md` (cca5be51…), `splits_ext_ble.json` (69ad8d94…). Frozen encoder
+`runs/wisig_supcon_fft64/retrain_best/best_model.pt` (**03898f49…**, read-only, unchanged after run).
+Embedding stage = `RFEncoder.get_encoder_output` → **512-D** (LayerNorm[ cross-attn(256) ⊕ spectral(256) ]),
+STFT front-end nfft=64/hop=16 (`stft_for(256)`, the fft64 front-end) — the **same stage+dim as every
+prior F-series transfer eval** (FINDINGS F1 frozen@N). Input = B1 25 MS/s cache (N,30,2,256); per
+segment: forward all 30 windows → mean-pool → L2-normalize. Extraction GPU-only, no weight update.
+Battery run 2026-07-16, single-threaded BLAS, 5 seeds, ARI on burst-mean embeddings. Two transforms
+mirror A: **raw** = L2-renormed burst mean (the canonical frozen-transfer point, replaces A's global-z
+comparison); **robust** = per-collection median/IQR (same IQR-floor safeguard as A).
+
+### T1 — Transferability (linear probe + kNN-1 on the 8 eval units; raw L2; chance 0.125)
+| regime | N | probe acc | kNN-1 acc |
+|---|---|---|---|
+| canonical (outdoor) | 1 | 0.532 | 0.994 |
+| canonical (outdoor) | 10 | 0.523 | 0.983 |
+| diagnostic (matched) | 1 | 0.387 | 0.999 |
+| diagnostic (matched) | 10 | 0.442 | 0.964 |
+
+kNN-1 ≈ 1.0 (the fingerprint is locally present), but the **linear probe is far weaker (0.53 canonical
+N=1)** — frozen-WiSig embeddings are kNN-separable but **not linearly separable by unit** at segment
+resolution (non-linear tangle). Contrast A, where classical_b is *perfectly linearly* separable
+(probe 1.0). This gap is the crux of the B2 gate below.
+
+### T2 — Discovery (eval_units, N=120, 5 seeds)
+| transform | regime | k-means ARI | spectral | estK | correct-K | HDBSCAN found-K / ARI / noise |
+|---|---|---|---|---|---|---|
+| **robust** | **canonical** | **0.945 ± 0.000** | 0.431 | 11.0 | 0.00 | **9.8 / 0.956 / 0.00** |
+| robust | diagnostic | 0.284 ± 0.009 | 0.037 | 5.6 | 0.00 | 63.6 / 0.191 / 0.01 |
+| raw | canonical | 0.924 ± 0.005 | 0.415 | 10.0 | 0.00 | 9.0 / 0.965 / 0.01 |
+| raw | diagnostic | 0.229 ± 0.013 | 0.038 | 3.2 | 0.00 | 60.2 / 0.191 / 0.01 |
+
+The frozen embedding yields a **far more clusterable canonical geometry than A**: deployable HDBSCAN
+(no oracle-K) finds **≈9–10 clusters with ARI 0.956–0.965** — versus A's 28 fragments / 0.443. K-estimation
+still over/under-shoots 8 (correct-K 0.00, as with A), but the *representation* clusters cleanly.
+
+### T3 — N-sweep (oracle-K=8 k-means ARI, both transforms)
+| transform | regime | N=1 | N=10 | N=30 | N=120 |
+|---|---|---|---|---|---|
+| **robust** | canonical | 0.174 | 0.597 | 0.806 | **0.945** |
+| robust | diagnostic | 0.096 | 0.241 | 0.279 | 0.284 |
+| raw | canonical | 0.217 | 0.483 | 0.673 | 0.924 |
+| raw | diagnostic | 0.094 | 0.182 | 0.224 | 0.229 |
+
+**Monotone strong integration gain, weak at low N** (robust canonical 0.174→0.597→0.806→0.945) — the
+textbook **F1 frozen-encoder signature**: per-segment embeddings are noisy, burst-mean integration
+denoises them, no early saturation. This is the *opposite* shape to A (front-loaded: 0.536 at N=1,
+peaks 0.925 at N=10, then flat/declines).
+
+### T-RX — Receiver-disjoint arm (fit R1 robust stats → cluster R2, eval_units, N=120)
+| variant | k-means ARI | spectral ARI |
+|---|---|---|
+| full (R1-fit stats on R2) | 0.454 ± 0.016 | 0.271 |
+| R2-matched reference (R2's own stats) | 0.439 | — |
+R1-fit stats transfer to R2 (0.454 ≥ 0.439 matched) — like A, the deployable transform survives
+receiver shift — but the **absolute level is below A's** (0.571).
+
+### T5 — Compute (vs A)
+| metric | A (classical_b) | B1 (frozen WiSig) |
+|---|---|---|
+| ms / segment | 0.220 (1-core CPU) | **0.638 (GPU)** / 69.5 (1-core CPU) |
+| embedding dim | 19 | 512 |
+| params | 0 (unsupervised) | 1,490,944 (frozen, pretrained on WiSig WiFi) |
+| embedding cache (877 k segs) | 68.4 MB | 1798.7 MB |
+| training data required | zero | zero (frozen; no BLE labels used) |
+B1 needs a **GPU** to be fast (69.5 ms/seg on one CPU core — ~316× A) and a **26× larger** cache.
+
+### A-vs-B1 side-by-side (all shared cells; k-means oracle-K=8 ARI unless noted)
+| cell | A | B1 | winner |
+|---|---|---|---|
+| **canonical robust N=1** | **0.536** | 0.174 | **A** (+0.362) |
+| **canonical robust N=10** | **0.925** | 0.597 | **A** (+0.328) |
+| canonical robust N=30 | 0.873 | 0.806 | A (+0.067) |
+| **canonical robust N=120** | 0.863 | **0.945** | **B1** (+0.082) |
+| **diagnostic robust N=120** (pooled) | 0.193 | **0.284** | **B1** (+0.091) |
+| diagnostic robust N=10 | 0.182 | 0.241 | B1 (+0.059) |
+| diagnostic robust N=30 | 0.198 | 0.279 | B1 (+0.081) |
+| T2 canonical HDBSCAN ARI (deployable-K) | 0.443 | **0.956** | **B1** (+0.513) |
+| T-RX full R1→R2 | **0.571** | 0.454 | A (+0.117) |
+| T1 canonical probe N=1 | **1.000** | 0.532 | A |
+| T1 canonical kNN-1 N=1 | 1.000 | 0.994 | ~tie |
+
+**Pooled-diagnostic flag (the regime where B can still earn its keep):** **YES — B1 shows a real
+advantage there.** Diagnostic (matched-condition, R1+R2 pooled) k-means ARI **0.284 (B1) vs 0.193 (A)**,
++0.091, and B1 leads at every diagnostic N except N=1. B1 also wins big on **deployable clustering**
+(canonical HDBSCAN 0.956 vs 0.443) and on **high-N canonical** (0.945 vs 0.863). B1 loses decisively at
+**low N** (N≤10) and on **receiver transfer**. Net: the frozen encoder buys *integration-limited* gains
+(needs N≳30 and a GPU) but genuinely improves the hardest pooled cross-receiver cell and the
+no-oracle-K deployable path.
+
+### Pre-registered prior verdicts (Phase 3a)
+- **P3 VERDICT (A beats B1 frozen at low N cross-domain) — verbatim:**
+  > **CONFIRMED at low N; INVERTS at high N.** Pre-registered floor: A canonical **N=120 0.863 /
+  > N=10 0.925**. B1 frozen-WiSig on the same cells: **N=10 0.597** (A wins by +0.328) and **N=1
+  > 0.174 vs A 0.536** (A wins by +0.362) — P3's *low-N* claim holds cleanly, A beats frozen transfer
+  > when bursts are few. But at **N=120 B1 = 0.945 > A 0.863** (B1 +0.082): with enough burst
+  > integration the frozen encoder overtakes the classical floor. P3 is a **low-N** statement and is
+  > upheld as such; it does not extend to the integration-saturated regime.
+- **P1 CHECK-IN (F1 N-curve shape) — verbatim:**
+  > **MATCHES F1.** B1's N-curve is the canonical frozen-encoder shape F1 predicts — **weak at low N,
+  > large monotone integration gain, no early saturation**: robust canonical 0.174 (N=1) → 0.597
+  > (N=10) → 0.806 (N=30) → 0.945 (N=120). Single-segment frozen embeddings are noisy and only
+  > kNN-separable (probe 0.53), so discovery is poor at N=1; burst-mean integration denoises them and
+  > ARI climbs steadily. This is the opposite of Approach A's front-loaded curve (0.536 at N=1, peak
+  > 0.925 at N=10, then flat), confirming the two approaches occupy **different N-regimes** — A owns
+  > low-N, B1 owns high-N.
+
+### B2 GATE (pre-registered; decide by numbers, no execution)
+Rule: B2 partial-unfreeze runs in Phase 3b **ONLY IF** B1 canonical probe(N=1) ≥ 0.60 **OR** B1
+diagnostic N=120 oracle-K ARI ≥ 0.30.
+- canonical probe(N=1) = **0.532** ≥ 0.60 ? **NO** (near-miss).
+- diagnostic N=120 oracle-K ARI = **0.284** ≥ 0.30 ? **NO** (near-miss).
+- **→ B2 SKIPPED.** Both conditions fail (both narrowly). Justification (pre-registered): a partial
+  head-only unfreeze on a frozen encoder ≡ training a linear head ≡ the **linear probe already run**
+  (T1 canonical probe 0.532 is the *best* a linear head can do), and cross-condition discovery
+  (0.284) sits below the bar — consistent with the R1–R3 precedent that head-only adaptation adds
+  little over the frozen readout. B1's genuine wins (high-N canonical, pooled diagnostic, deployable
+  HDBSCAN) come from **burst integration + clustering geometry, not from a trainable head**, so
+  partial-unfreeze is not indicated. *(B3 native-from-scratch is a separate arm, Phase 3c.)*
 
 ## Methodology note (honesty)
 The battery was run once. One numerical fix was applied mid-run and re-run: an **IQR floor** on the
