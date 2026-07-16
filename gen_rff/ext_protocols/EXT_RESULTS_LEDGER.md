@@ -263,3 +263,136 @@ train_collections(8) = 400,951 segments.
   axes that pool in the diagnostic regime → predicts the diagnostic gain over B1.
 
 *(Results, verdicts, and the three-way A/B1/B3 table are appended below after the run.)*
+
+### Phase 3c RESULTS — B3 native from-scratch (appended after run, 2026-07-16)
+
+Native dual-branch RFEncoder, fresh random init, SupCon tau=0.5 (constant), NO augmentation,
+balanced **P×S = 21×16 = 336** (all train units/batch; segments drawn uniformly across the 8
+train_collections). AdamW lr=5e-4 (cosine, 5% warmup) wd=1e-4, grad-clip 1.0, AMP. 12 epochs =
+14,328 steps/run. **epoch-1 = 176.7 s → projected 0.59 h/run (<6 h, no epoch halving).** Wall:
+full runs 34.9 / 35.3 min, de10 16.5 min, de5 8.9 min. Discovery embedding = **128-D L2-normed
+projection head** (`forward()`; native-arm precedent — cf. B1's 512-D frozen encoder output).
+Frozen WiSig `best_model.pt` (03898f49…) untouched/read-only; authorities unchanged.
+
+**Checkpoint selection (pre-registered, honored):** primary = val-unit(2) burst-mean N=10 pairwise
+-cosine ROC-AUC on train_collections; tie-break = val SupCon loss. **The val-AUC saturated at 1.000
+from epoch 1** (only 2 held-out val units → trivially separable), so selection fell entirely to the
+**val-loss tie-break, which favors early epochs** (val SupCon loss rises as the encoder specializes
+to train units). Selected epochs: full_s2024 **ep2**, full_s1234 **ep1**, de10 ep1, de5 ep5.
+*Honest limitation:* a 2-unit val signal is too weak to discriminate late checkpoints; the protocol
+therefore effectively early-stops. Reported as-is (no post-hoc change). Collapse guard (per-dim
+emb-std) stayed healthy (~0.055) every epoch, all runs — no collapse.
+
+**Selected-checkpoint sha256 (off-repo, gitignored):**
+`full_s2024 f1d7745eaa72…` · `full_s1234 e480589e142a…` · `de10_s2024 a4eaf7d31104…` · `de5_s2024 de08691f74e9…`
+
+#### T1 — probe + kNN-1 (raw L2, chance 0.125) — full_s2024 / full_s1234
+| regime | N | probe | kNN-1 |
+|---|---|---|---|
+| canonical | 1 | 0.928 / 0.929 | 0.965 / 0.951 |
+| canonical | 10 | 0.963 / 0.974 | 0.989 / 0.991 |
+| diagnostic | 1 | 0.912 / 0.908 | 0.971 / 0.941 |
+| diagnostic | 10 | 0.920 / 0.917 | 0.986 / 0.982 |
+Native embeddings are **linearly separable** (probe 0.93) — unlike B1 frozen (probe 0.53) — the
+SupCon head learned a linear unit geometry.
+
+#### T2 — Discovery (N=120, full_s2024; 5 seeds)
+| transform | regime | k-means ARI | spectral | estK | HDBSCAN found-K / ARI / noise |
+|---|---|---|---|---|---|
+| robust | canonical | 0.891 ± 0.000 | 0.111 | 3.6 | 31.0 / 0.371 / 0.00 |
+| robust | diagnostic | **0.699 ± 0.004** | 0.023 | 5.2 | 64.0 / 0.192 / 0.00 |
+| raw | canonical | 0.850 ± 0.000 | 0.105 | 8.6 | 22.6 / 0.531 / 0.00 |
+| raw | diagnostic | 0.701 ± 0.005 | 0.053 | 3.2 | 55.2 / 0.255 / 0.01 |
+Deployable-K (HDBSCAN) on **canonical is B3's weak spot**: it over-fragments (K≈22–31, ARI 0.37–0.53)
+— **B1 still wins that cell (K≈10, ARI 0.956).** B3's win is the **oracle diagnostic** regime.
+
+#### T3 — N-sweep (oracle-K k-means ARI), full_s2024
+| transform | regime | N=1 | N=10 | N=30 | N=120 |
+|---|---|---|---|---|---|
+| robust | canonical | 0.755 | 0.892 | 0.889 | 0.891 |
+| robust | diagnostic | 0.702 | 0.699 | 0.698 | 0.699 |
+| raw | canonical | 0.726 | 0.860 | 0.852 | 0.850 |
+| raw | diagnostic | 0.705 | 0.696 | 0.693 | 0.701 |
+**B3 is essentially FLAT in N** (0.755→0.891 canonical; ~0.70 diagnostic at *every* N incl. N=1) — the
+learned per-segment embedding is already discriminative, so **no burst integration is needed**. This
+is the opposite of B1 (F1 integration curve) and stronger-at-low-N than A.
+
+#### T-RX — receiver-disjoint (fit R1 robust → cluster R2, N=120)
+| run | full R1→R2 | R2-matched ref |
+|---|---|---|
+| full_s2024 | **0.831 ± 0.000** | 0.831 |
+| full_s1234 | 0.687 ± 0.000 | 0.831 |
+Best receiver transfer of all three approaches (A 0.571, B1 0.454). Seed spread is notable here
+(0.687–0.831) — receiver transfer is B3's least seed-stable cell.
+
+#### T4 — data-efficiency curve (N=120, seed 2024; robust / raw k-means ARI)
+| train_units | canonical robust | diagnostic robust | canonical raw | diagnostic raw |
+|---|---|---|---|---|
+| 5 | 0.554 | 0.586 | 0.781 | 0.588 |
+| 10 | 0.849 | 0.786 | 0.840 | 0.801 |
+| 21 (full) | 0.891 | 0.699 | 0.850 | 0.701 |
+Canonical rises monotonically with train-unit count (data-hungry: needs ≥10 units). Diagnostic
+**already exceeds the pre-registered 0.334 bar with only 5 units** (0.586) and peaks at 10 units
+(0.786) — the cross-collection invariance the mechanism predicts is learnable from few units.
+
+#### T5 — Compute (three-way)
+| metric | A | B1 frozen | B3 native |
+|---|---|---|---|
+| embedding dim | 19 | 512 | 128 |
+| params | 0 | 1.49 M (frozen) | 1.49 M (trained) |
+| GPU ms/seg | — (0.22 CPU) | 0.638 | **0.142** |
+| 1-core CPU ms/seg | 0.220 | 69.5 | 17.9 |
+| embedding cache | 68.4 MB | 1798.7 MB | 451.0 MB |
+| training | none | none | 4 runs; full 34.9/35.3 min (14,328 steps), GPU |
+
+### Three-way A / B1 / B3 (all shared cells; robust k-means oracle-K ARI unless noted)
+| cell | A | B1 | B3 (s2024) | B3 seed-mean |
+|---|---|---|---|---|
+| canonical N=1 | 0.536 | 0.174 | 0.755 | 0.810 |
+| canonical N=10 | **0.925** | 0.597 | 0.892 | 0.893 |
+| canonical N=30 | 0.873 | 0.806 | 0.889 | 0.889 |
+| canonical N=120 | 0.863 | **0.945** | 0.891 | 0.891 |
+| **diagnostic N=120 (pooled)** | 0.193 | 0.284 | **0.699** | **0.714** |
+| diagnostic N=1 | 0.176 | 0.096 | 0.702 | 0.702 |
+| T1 canonical probe N=1 | **1.000** | 0.532 | 0.928 | 0.929 |
+| T2 canonical HDBSCAN ARI (deployable-K) | 0.443 | **0.956** | 0.371 (raw 0.531) | — |
+| T2 diagnostic HDBSCAN ARI | 0.192 | 0.191 | 0.192 (raw 0.255) | — |
+| T-RX full R1→R2 | 0.571 | 0.454 | **0.831** | 0.759 |
+*(B3 seed-mean over full_s2024/full_s1234. diagnostic N=120: 0.699/0.730. canonical N=120: 0.891/0.891.)*
+
+### PRE-REGISTERED SCORING
+- **PRIMARY — pooled-diagnostic N=120 oracle-K ARI > 0.334:** **PASS (decisively).** B3 = **0.699
+  (s2024) / 0.730 (s1234), mean 0.714** — +0.38 over the bar, +0.43 over B1 (0.284), +0.52 over A
+  (0.193). The learned encoder earns its keep in the one regime that matters.
+- **SECONDARY — canonical N=120 ≥ 0.90 (parity band w/ B1 0.945):** **NARROWLY MISSED — 0.891** (both
+  seeds), 0.009 short of 0.90; sits in-band above A (0.863), below B1 (0.945). N=10 canonical: B3
+  0.892/0.895 vs **A 0.925** — A still edges the low-N canonical cell.
+
+### P4 VERDICT (verbatim)
+> **P4 CONFIRMED on BLE.** A learned encoder was predicted to still earn its keep in the pooled
+> cross-condition (diagnostic) regime where classical/frozen fail. B3 native SupCon delivers
+> **diagnostic N=120 oracle-K ARI = 0.714 (seed-mean), 0.699/0.730 per seed** — versus A 0.193 and
+> B1 0.284 — clearing the pre-registered 0.334 bar by +0.38 and roughly **2.5× the best prior
+> approach.** The gain is present at *every* N (diagnostic ARI ≈ 0.70 even at N=1) and appears with as
+> few as 5 training units (T4: 0.586). The mechanism hypothesis holds: SupCon positives spanning
+> receivers/channels/links inside balanced batches push per-unit invariance onto exactly the axes
+> that the diagnostic regime pools. **Caveat:** B3 does *not* dominate everywhere — B1 frozen still
+> wins the deployable-K canonical HDBSCAN cell (0.956 vs 0.53) and high-N canonical oracle (0.945 vs
+> 0.891), and A still wins low-N canonical. B3's value is specifically **cross-condition robustness**,
+> not a uniform ceiling lift.
+
+### P5 VERDICT (verbatim)
+> **P5 CONFIRMED — canonical N=120 converges into a shared band; no method escapes it.** At the
+> canonical (single-receiver, cross-location) N=120 operating point the three approaches land in a
+> narrow band: **A 0.863 / B3 0.891 / B1 0.945** (width 0.082, all in [0.86, 0.95]). No representation
+> escapes upward — canonical discovery is **representation-saturated**, a shared ceiling set by the
+> data, not the encoder. Divergence appears **only in the harder pooled-diagnostic regime** (A 0.193 /
+> B1 0.284 / B3 0.714), where B3 escapes the band decisively. Net: the encoder choice is nearly
+> irrelevant at the easy canonical operating point and decisive at the hard cross-condition one.
+
+### Honest seed-variance note
+Two full-data seeds (2024/1234). **Canonical N=120 is rock-stable** (0.891 / 0.891). **Diagnostic
+N=120** has modest spread (0.699 / 0.730, mean 0.714, ±0.016). **T-RX is the least stable cell**
+(0.831 / 0.687, spread 0.144) — receiver-transfer geometry depends on init. All PRIMARY-relevant
+cells clear their bars under both seeds; the SECONDARY near-miss (0.891) is seed-invariant. Per-seed
+5-seed clustering std within each run is ≤0.024 on all headline cells (tables show ±).
