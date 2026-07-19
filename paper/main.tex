@@ -1,0 +1,504 @@
+% =========================================================================
+% Open-World RF Emitter Discovery — capstone/internship paper DRAFT v0.1
+% Sources of every number (verbatim, no re-derivation):
+%   summer_work/EVAL_PROTOCOL.md          (locked protocol, WiSig/DRFF cells, TEST)
+%   gen_rff/FINDINGS.md                   (F1-F8, DANN NULL, generalist closed)
+%   gen_rff/ext_protocols/EXT_FINDINGS.md (EF1-EF8, M1/M2, W1-W5, BLE D2)
+%   gen_rff/demo_router/README.md         (router demo, S1-S6, gates)
+%   summer_work/results/demo_play1b/DEMO_OPERATING_POINT.md
+% Compile: IEEEtran (Overleaf / TeX Live). Not compiled locally (no pdflatex).
+% =========================================================================
+\documentclass[conference]{IEEEtran}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\ari}{\mathrm{ARI}}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+
+\begin{document}
+
+\title{Open-World Discovery of Unseen RF Emitters:\\
+Burst Integration, Native Enrollment, and the Limits of Generalist Fingerprint Encoders}
+
+\author{\IEEEauthorblockN{Abhinav W}
+\IEEEauthorblockA{\todo{affiliation, advisor, email}}}
+
+\maketitle
+
+\begin{abstract}
+Radio-frequency (RF) fingerprinting research overwhelmingly evaluates \emph{rejection}: deciding
+whether a signal comes from an enrolled transmitter. We study the harder open-world task of
+\emph{discovery}: given emissions from devices never seen in training, group them into distinct
+device identities and estimate how many there are. Across four device populations spanning three
+protocols and sample rates from 5 to 50\,MS/s --- 150 WiFi transmitters (WiSig), 16 USRP X310s
+(ORACLE), 8 same-model DJI airframes (DRFF), and 31 same-model BLE units --- we report three main
+results under a pre-registered, device-disjoint, leakage-audited protocol. \textbf{(1) The
+cross-domain transfer wall is integration-dependent, not fixed:} at a burst size of $N{=}120$
+windows, a frozen WiFi encoder, 19 hand-crafted physics features, and a natively trained encoder
+all converge into a single 0.62--0.79 ARI band on drone discovery; the residual advantage of
+native training is only $\approx$0.06--0.11 ARI. \textbf{(2) Monolithic ``generalist'' encoders do
+not close this gap:} multi-domain contrastive training, physics-feature injection, and
+channel-adversarial (DANN) objectives all fail a pre-registered bar against simple frozen
+transfer, and we close this architecture line with the negative evidence. \textbf{(3) Native
+per-protocol enrollment does close it where it matters:} on pooled multi-receiver BLE discovery, a
+small natively trained encoder reaches 0.714 ARI where frozen transfer scores 0.284 and classical
+features 0.193, and a variance decomposition shows why --- contrastive positives spanning
+receivers drive collection (channel/receiver) variance to $\approx$0 while retaining 0.98 of
+unit variance. These findings motivate a router-then-specialize system --- protocol
+classification, per-protocol native encoders, and an explicit UNKNOWN tier --- which we implement
+and validate end-to-end with regression-gated scenarios, including simultaneous WiFi + drone + BLE
+discovery with zero cross-protocol identity collisions.
+\end{abstract}
+
+\begin{IEEEkeywords}
+RF fingerprinting, open-set recognition, specific emitter identification, clustering,
+metric learning, open-world discovery
+\end{IEEEkeywords}
+
+% =========================================================================
+\section{Introduction}
+% =========================================================================
+
+Hardware imperfections --- oscillator offset, IQ imbalance, amplifier nonlinearity --- imprint a
+device-specific signature on every RF emission. A decade of specific emitter identification (SEI)
+work exploits this for \emph{closed-set} classification and, more recently, \emph{open-set
+rejection}: flagging signals that match no enrolled device. But the operational question in
+spectrum monitoring, counter-UAS, and interference hunting is usually different: \emph{how many
+distinct emitters are out there, and which emissions belong to which?} The devices of interest are
+precisely the ones that were never enrolled.
+
+We formulate this as \emph{open-world emitter discovery}: an encoder $f$ maps raw IQ windows to
+embeddings; at test time, emissions from a device population \emph{disjoint} from training are
+clustered into identities, and clustering quality is scored against held-out true device labels.
+Rejection is a by-product (an UNKNOWN route), not the goal.
+
+This paper is deliberately an \emph{honest-evaluation} paper. Discovery metrics are fragile ---
+they move with burst-integration length, clustering support conventions, receiver diversity, and
+checkpoint selection --- and we found that several apparent effects in our own early results were
+artifacts of exactly these knobs. All headline numbers therefore come from a locked protocol
+(Sec.~\ref{sec:protocol}) with pre-registered success bands, device- and board-disjoint splits, a
+one-touch rule for every held-out set, and negative results reported at the same standard as
+positive ones.
+
+\textbf{Contributions.}
+\begin{enumerate}
+  \item \textbf{A locked discovery-evaluation protocol} (Sec.~\ref{sec:protocol}): device-disjoint
+  splits, a noise-scoring rule that stops density-based clusterers from being rewarded for
+  refusing to cluster, separately reported \emph{assisted} (oracle-$K$) and \emph{deployable}
+  ($K$-estimated) operating modes, and one-touch held-out sets.
+  \item \textbf{The $N$-dependence of the cross-domain wall} (Sec.~\ref{sec:wall}): burst
+  integration --- not representation --- carries most of cross-domain discovery. At $N{=}120$,
+  frozen WiFi transfer, classical physics features, and native training converge to one band on
+  8-way drone discovery; the representational gap that native training buys is
+  $\approx$0.06--0.11 ARI.
+  \item \textbf{Closure of the monolithic-generalist line} (Sec.~\ref{sec:generalist}): with
+  pre-registered bands, multi-domain SupCon, physics-token injection, and channel-adversarial
+  training all fail to beat frozen transfer at matched $N$; several actively hurt. We report the
+  ablation ledger and close the line rather than tuning until something passes.
+  \item \textbf{A three-way comparative study on same-model BLE discovery}
+  (Sec.~\ref{sec:ble}): classical 19-D physics features vs.\ frozen WiFi transfer vs.\ a native
+  1.49M-parameter encoder, on 31 same-model BLE units across 12 capture collections. The winner is
+  \emph{regime-dependent}; in the pooled multi-receiver regime that deployment actually faces, the
+  native encoder escapes the wall (0.714 vs.\ 0.284/0.193 ARI), and a variance decomposition
+  identifies the mechanism (collection-invariance: collection $\eta^2\!\approx\!0$).
+  \item \textbf{A router-then-specialize system} (Sec.~\ref{sec:system}): rate-aware protocol
+  routing with a Mahalanobis UNKNOWN gate, per-protocol frozen native tiers of heterogeneous
+  embedding dimension, per-protocol-group clustering with namespaced identities, validated by
+  regression-gated scenarios including simultaneous three-protocol discovery with zero
+  cross-protocol identity collisions.
+\end{enumerate}
+
+% =========================================================================
+\section{Related work}
+% =========================================================================
+\label{sec:related}
+
+\textbf{Open-set SEI (rejection).} OpenMax-style tail modeling, prototypical networks with
+extreme-value calibration, and threshold-based verification reject signals from unenrolled
+devices \todo{cite Bendale \& Boult 2016; Xie et al.\ 2021; Guo et al.\ 2024; survey refs from
+LITERATURE\_SURVEY}. Discovery differs in kind: rejected signals must be further \emph{organized
+into identities}, and the number of identities is itself unknown. We use rejection machinery only
+as a routing gate (Sec.~\ref{sec:system}).
+
+\textbf{Open-set discovery and novel-class clustering.} Generalized category discovery in vision
+\todo{cite GCD/CiPR} clusters unlabeled classes at the \emph{category} level; recent UAV-signal
+work \todo{cite arXiv 2603.24268} discovers signal \emph{types}. Our task is finer: distinct
+\emph{physical units of the same model} --- same protocol, same PCB, same firmware --- separated
+only by manufacturing tolerance.
+
+\textbf{Same-model fingerprinting.} UAVSig \todo{cite MILCOM 2024} demonstrates closed-set
+same-model drone identification; DRFF and BLE datasets \todo{cite dataset papers} provide
+same-model populations we use in the open-world setting. Hiles et al.\ \todo{cite 2025 framework
+paper} name emitter discovery as a task in a generic RFF framework; we instantiate and
+stress-test it, including its failure modes.
+
+\textbf{Cross-domain transfer in RFF.} Prior work reports both optimistic transfer and severe
+receiver/day shift sensitivity \todo{cite WiSig paper; receiver-shift studies}. Our contribution
+here is the \emph{controlled decomposition} of transfer into an integration effect and a
+representation effect (Sec.~\ref{sec:wall}), which reconciles both readings.
+
+% =========================================================================
+\section{Problem formulation and locked evaluation protocol}
+% =========================================================================
+\label{sec:protocol}
+
+\textbf{Task.} Train an encoder $f:\mathbb{R}^{2\times L}\!\to\!\mathbb{S}^{d-1}$ on labeled
+windows from devices $\mathcal{D}_{\mathrm{train}}$. At evaluation, receive windows from
+$\mathcal{D}_{\mathrm{test}}$, $\mathcal{D}_{\mathrm{test}}\cap\mathcal{D}_{\mathrm{train}}
+=\emptyset$, grouped into \emph{bursts} (tracks) of $N$ windows by capture continuity --- never by
+label. Embed, mean-pool each burst, L2-normalize, cluster. Score the partition against true device
+labels, which are used \emph{only} for scoring.
+
+\textbf{Metrics.} Adjusted Rand Index (ARI; chance $=0$) is primary; NMI and purity are
+secondary. \textbf{Locked noise rule:} density-based clusterers may label points as noise
+($-1$); every noise point is scored as its \emph{own singleton cluster}, and ARI/NMI/purity share
+one support (all points). Without this rule, excluding noise from ARI/NMI rewards a clusterer for
+refusing to cluster: under the old convention a margin-head variant scored 0.645--0.667 ARI while
+discarding 45\% of bursts as noise; under the locked rule the same output scores 0.350. All
+numbers in this paper use the locked rule.
+
+\textbf{Assisted vs.\ deployable $K$.} We report two operating modes separately and never mix
+them: \emph{assisted-$K$} (the operator supplies the emitter count; clustering is $K$-way ---
+also the \emph{ceiling} diagnostic, reported for k-means and spectral clustering separately,
+never max-of-methods) and \emph{deployable-$K$} (the system estimates $K$ by eigengap or HDBSCAN).
+Count quality is reported as $K_{\mathrm{est}}$ and ARI at $K_{\mathrm{est}}$.
+
+\textbf{Split discipline.} All splits are device-disjoint and, where fabrication structure is
+known, \emph{board}-disjoint. Each domain has a development pool (all tuning) and a one-touch
+held-out set evaluated exactly once with frozen hyperparameters and reported as-is. Success bands
+for confirmatory runs are pre-registered before training. Splits, thresholds, and plan documents
+are hash-frozen in the repository.
+
+\textbf{Burst-construction audit.} Because bursts are built from storage-order continuity, we
+verified they do not smuggle channel coherence into the score: \emph{scattered} bursts (windows
+drawn from up to 72 distinct receiver$\times$day sessions of one device) score \emph{at least as
+high} as coherent same-session bursts (e.g.\ margin-head 0.802 scattered vs.\ 0.396 coherent).
+Burst-mean pooling therefore denoises toward a \emph{hardware} centroid rather than exploiting
+within-session channel coherence.
+
+% =========================================================================
+\section{Datasets}
+% =========================================================================
+\label{sec:data}
+
+\begin{table}[t]
+\caption{Device populations. All evaluations are device-disjoint from all training.}
+\label{tab:data}
+\centering\small
+\begin{tabular}{lllll}
+\toprule
+population & protocol & rate & devices & role \\
+\midrule
+WiSig ManyTx & WiFi 802.11a & 25\,MS/s & 150 (109/41) & train + in-domain \\
+ORACLE & WiFi 802.11a & 5\,MS/s & 16 & aux.\ train (Sec.~\ref{sec:generalist}) \\
+DRFF (mavicAir2) & DJI OcuSync & 50\,MS/s & 8 same-model & cross-domain eval \\
+BLE D2 (XIAO) & BLE GFSK 1\,Mbps & 6\,MS/s & 31 same-model & Sec.~\ref{sec:ble} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:data} summarizes the populations. \textbf{WiSig}: 150 transmitters across 20
+fabrication boards, 18 receivers $\times$ 4 capture days; board-disjoint 109 train / 41 discover
+split, the 41 further partitioned into DEV (25 devices, 4 boards) and a one-touch TEST (16
+devices, single board~18). \textbf{DRFF}: 8 DJI mavicAir2 airframes (same model) held out
+entirely; 13 non-mavicAir2 airframes available for native training. \textbf{BLE D2}: 31 Seeed
+XIAO ESP32-C3 units (same model), USRP B210 capture, 12 collections spanning wired/antenna links,
+channels, distances, and two receivers; pre-registered split of 21 train / 2 val / 8 eval units
+$\times$ disjoint collection sets. \textbf{ORACLE}: 16 USRP X310s at 5\,MS/s; used here only as a
+training-pool ingredient, where it turns out to be informative by \emph{failing}
+(Sec.~\ref{sec:generalist}).
+
+% =========================================================================
+\section{In-domain discovery and what makes it hard}
+% =========================================================================
+\label{sec:indomain}
+
+\textbf{Encoders.} The WiFi specialist is a dual-branch encoder (time-domain and STFT branches,
+fused; SupCon objective) producing 512-D embeddings; the same 1.49M-parameter architecture family
+is used natively per domain throughout (drone: 4096-sample windows at 50\,MS/s; BLE: 1850-sample
+windows at 6\,MS/s, 128-D head). No architecture search was performed per domain.
+
+\textbf{Receiver diversity is the deployable lever.} On WiSig DEV, burst protocol dominates the
+result. With bursts confined to one (receiver, day) session, discovery reaches 0.558 ARI
+(embedding) / 0.368 (margin head); allowing bursts to span \emph{10 different receivers on the
+same day} lifts the margin head to $0.772\pm0.037$ with $K_{\mathrm{est}}$ collapsing from
+$\sim$43 to $16.3$ (true 18) and noise from 44\% to 0.8\%. Day diversity alone does \emph{not}
+help (0.211). The per-receiver channel signature, not the day, is the confound; simultaneous
+multi-sensor observation removes it. This is a deployable architecture requirement, not a data
+trick --- and it shapes the system design in Sec.~\ref{sec:system}.
+
+\textbf{Same-fabrication populations are the hard case.} The one-touch TEST (16 devices from a
+single fabrication board) came back far below DEV: 0.219 vs.\ 0.727 ARI at the frozen operating
+point, with every protocol row drifting 0.35--0.51. Local separability survives (kNN-1 up to
+0.99) but the global 16-way partition of same-fab siblings collapses. Reported as-is: \emph{a
+single fabrication batch of 16 same-model WiFi devices is roughly as hard to discover as
+cross-domain drones}. Same-model discovery difficulty is fabrication-structure-dependent, which
+is why the BLE study (Sec.~\ref{sec:ble}) uses 31 same-model units as its population.
+
+% =========================================================================
+\section{The cross-domain wall is $N$-dependent}
+% =========================================================================
+\label{sec:wall}
+
+The canonical cross-domain cell: encoders that have never seen a drone must discover the 8
+same-model mavicAir2 airframes. Table~\ref{tab:wall} shows the assisted-$K$ (oracle-$K$@8)
+result as a function of burst integration $N$.
+
+\begin{table}[t]
+\caption{8-way drone discovery (ARI, assisted-$K$, k-means/spectral) vs.\ burst length $N$.
+Fixed window cap 1500; the locked small-$N$ reference at cap 320 is 0.297 (see text).}
+\label{tab:wall}
+\centering\small
+\begin{tabular}{lcc}
+\toprule
+method & $N{=}10$ (km) & $N{=}120$ (km / sp) \\
+\midrule
+frozen WiFi encoder (transfer) & 0.137 & 0.729 / 0.777 \\
+classical 19-D physics features & 0.174 & 0.713 / 0.666 \\
+native drone-trained encoder & 0.276 & \textbf{0.792 / 0.835} \\
+multi-domain generalist (Sec.~\ref{sec:generalist}) & 0.197 & 0.625 / 0.666 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two readings. First, \textbf{burst integration washes out most of the transfer gap}: at
+$N{=}120$, all four methods sit in one 0.62--0.79 band --- including hand-crafted features with
+zero training. Heavy averaging toward the hardware centroid, not representation quality, carries
+most of cross-domain discovery. Second, the \textbf{representational residual is real but
+small}: native training buys $\approx$0.06--0.11 ARI over frozen transfer at matched $N$.
+
+Small-$N$ numbers deserve a warning we learned the hard way: assisted-$K$ ARI at $N{=}10$ on
+cross-domain features is \emph{burst-count-sensitive} --- the same frozen encoder scores 0.297 at
+a 320-window cap but 0.137 at a 1500-window cap, purely because k-means over more noisy points
+fragments more. We therefore treat $N{=}120$ as the cap-robust comparison and never quote a
+small-$N$ cell as a fixed ``wall.''
+
+Count estimation does \emph{not} come along for the transfer ride: at $N{=}120$ the native
+stack recovers $K$ cleanly (eigengap $K{=}8$ on one seed; assisted success 1.0 in the demo
+operating regime), while transferred features estimate $K{=}5$--7 with ARI@$K_{\mathrm{est}}$
+$\le 0.63$. Good cluster geometry at oracle-$K$ does not imply a usable spectrum for $K$
+estimation.
+
+% =========================================================================
+\section{Closing the generalist line}
+% =========================================================================
+\label{sec:generalist}
+
+Could one protocol-agnostic encoder, trained across device populations with physics priors,
+transfer better than frozen single-domain weights? We built the strongest version we could ---
+121 training identities (WiSig 109 + ORACLE 12, zero drone data), a 1.84M-parameter encoder with
+a 19-D physics-feature token and an LPC protocol-residual input channel, SupCon with
+cross-condition positives, selection frozen before training --- and evaluated leave-one-protocol-out
+on the 8 mavicAir2 airframes. The ledger:
+
+\begin{itemize}
+  \item \textbf{The generalist lost to everything at matched $N$} (Table~\ref{tab:wall}: 0.625
+  at $N{=}120$ vs.\ frozen 0.729, native 0.792) and halved in-domain quality relative to the
+  WiSig specialist (0.392 vs.\ $\approx$0.72) --- a cost that persisted under longer training and
+  pool changes, i.e.\ intrinsic to the objective, not budget.
+  \item \textbf{Physics-token injection hurt} both axes (removing it: transfer $+0.030$,
+  in-domain $+0.122$), despite the token being demonstrably used during training (physics
+  gradient share 0.06--0.33). Injected classical priors, fused by concat+FC, were not a free
+  lunch.
+  \item \textbf{The LPC residual channel was the one vindicated ingredient} (removing it:
+  in-domain $-0.132$, transfer@$N{=}120$ $-0.136$) --- but it is rate-dependent: blind LPC
+  extracts almost nothing at low oversampling (residual energy ratio 0.987 on 5\,MS/s OFDM vs.\
+  0.001 at 50\,MS/s).
+  \item \textbf{A degenerate domain poisons the pool.} ORACLE (12 identities, 5\,MS/s, 2
+  conditions) never learned under the shared objective (its loss stayed flat while WiSig's fell)
+  and removing it \emph{improved} transfer ($N{=}120$: $0.625\!\to\!0.781$). Data diversity must
+  be individually learnable to help.
+  \item \textbf{Channel-adversarial training (DANN), the strongest remaining lever, was
+  pre-registered and returned NULL.} One run, bands frozen before training (SIGNAL: $N{=}10 \ge
+  0.35$ or $N{=}120\ge0.80$): result 0.219 / 0.534 --- below both bands, and the $N{=}120$ number
+  is the worst of every method measured. Weak adversarial pressure (adversary accuracy stayed
+  0.63--0.94 against 0.25 chance) degraded transfer rather than enforcing useful invariance. No
+  sweeps, no rescues, no second seed.
+\end{itemize}
+
+\textbf{Verdict.} With multi-domain SupCon, physics injection, residual views, positive-pair
+placement, capacity, and adversarial invariance all exhausted against a frozen-transfer baseline
+they never beat at matched $N$, we close the monolithic-generalist line on this pool. The two
+levers left standing are genuine cross-family data diversity and \emph{per-domain native
+enrollment behind a router} --- which the rest of the paper pursues. One positive finding
+survives for future objectives: \emph{where} invariance pressure is placed is load-bearing ---
+unconstrained positives gave the best transfer (0.806 at $N{=}120$) at the worst in-domain cost
+(0.174) --- so the transfer/in-domain trade-off is a real dial, just not one any tested global
+objective exploited productively.
+
+% =========================================================================
+\section{Same-model BLE discovery: a three-way comparative study}
+% =========================================================================
+\label{sec:ble}
+
+If native enrollment is the answer, how much does it cost and what exactly does it buy? We ran a
+pre-registered three-way comparison on BLE D2 (31 same-model units, 12 collections):
+\textbf{A} --- 19 hand-crafted physics features (CFO, transient, modulation, spectral, IQ,
+envelope families; zero training); \textbf{B1} --- the frozen WiSig WiFi encoder applied
+cross-protocol (512-D); \textbf{B3} --- the same architecture trained natively from scratch on 21
+train units (128-D; 4 runs, 35 min total on one GPU). A planned fine-tuning arm (B2) was skipped
+by a pre-registered gate. Two evaluation regimes: \emph{canonical} (single capture collection ---
+the easy, receiver-matched case) and \emph{pooled} (all eval collections mixed --- the regime a
+multi-receiver base station actually faces).
+
+\begin{table}[t]
+\caption{BLE 8-unit discovery (ARI, assisted-$K$ unless noted), eval units never seen in
+training. Pooled = collections mixed. $\mu$ over two seeds where shown.}
+\label{tab:ble}
+\centering\small
+\begin{tabular}{lccc}
+\toprule
+cell & A (19-D) & B1 frozen (512-D) & B3 native (128-D) \\
+\midrule
+canonical, $N{=}1$ & 0.536 & 0.174 & \textbf{0.755} \\
+canonical, $N{=}10$ & \textbf{0.925} & 0.597 & 0.892 \\
+canonical, $N{=}120$ & 0.863 & \textbf{0.945} & 0.891 \\
+pooled, $N{=}120$ & 0.193 & 0.284 & \textbf{0.714} \\
+receiver transfer (fit R1, eval R2) & 0.571 & 0.454 & \textbf{0.759} \\
+deployable HDBSCAN, canonical & 0.443 & \textbf{0.956} & 0.531 \\
+eigengap $K_{\mathrm{est}}$ (true 8) & 3.2 & 11.0 & \textbf{8.6} \\
+GPU ms/segment & --- & 0.638 & \textbf{0.142} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{The winner is regime-dependent} (Table~\ref{tab:ble}). Classical features dominate
+canonical low-integration ($N{=}10$: 0.925) --- they are per-segment discriminative. Frozen
+transfer dominates canonical high-$N$ (0.945) and is the only method whose deployable HDBSCAN
+recovers $K$ on canonical data (ARI 0.956) --- the textbook integration-backed transfer curve
+from Sec.~\ref{sec:wall}, reproduced on a second protocol. \textbf{But in the pooled regime both
+baselines hit the wall (0.193 / 0.284) and the native encoder escapes it: 0.714, $+$0.43 over
+frozen transfer, at every $N$ (0.70 even at $N{=}1$), from as few as 5 training units.} On
+canonical data at $N{=}120$ all three methods converge into a 0.082-wide band ---
+representation choice barely matters on the easy regime and is decisive on the hard one.
+
+\textbf{Mechanism.} A variance decomposition over embedding dimensions (multivariate $\eta^2$,
+train units only) explains the pooled result:
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{lccc}
+\toprule
+method & unit $\eta^2$ & collection $\eta^2$ & effect of per-collection calib. \\
+\midrule
+A (19-D) & 0.144 & 0.249 & rescues ($-0.225$ removed) \\
+B1 (512-D) & 0.169 & 0.096 & helps ($-0.095$) \\
+B3 (128-D) & \textbf{0.979} & \textbf{0.000} & none needed \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In raw physics features, receiver/channel (collection) variance \emph{exceeds} device variance
+--- which is exactly why A collapses when collections are pooled and why per-collection
+calibration rescues it. The native encoder's contrastive positives span collections inside every
+batch, driving collection variance to $\approx$0 while unit variance is $\approx$all of it: it is
+\emph{calibration-free by construction}, and it transfers across receivers best (0.759 vs.\
+0.571/0.454). Neither learned encoder is a linear re-encoding of the physics features (ridge
+$R^2 \le 0.12$ overall; the most recoverable family, carrier offset, caps at $R^2\!\approx\!0.3$)
+--- the learned discriminative structure is largely orthogonal to the hand-crafted one.
+
+\textbf{Negative micro-findings.} The BLE turn-on transient carries essentially no marginal
+discovery signal on this dataset (dropping the transient family: $\Delta{=}-0.002$ ARI), a
+dataset-limited refutation of a common narrowband-SEI intuition (the transient here is coarsely
+sampled at 6\,MS/s and amplitude-normalized). And no method recovers $K{=}8$ by eigengap in the
+pooled regime --- deployable count estimation remains open where it matters most.
+
+% =========================================================================
+\section{A router-then-specialize system}
+% =========================================================================
+\label{sec:system}
+
+The evidence assembles into an architecture: \emph{protocol-classify first, then hand each track
+to a native per-protocol encoder, cluster within protocol groups only, and route anything
+unrecognized to an explicit UNKNOWN tier} --- the opposite of the monolithic generalist. We
+implemented and validated this end-to-end.
+
+\textbf{Pipeline.} (1) A tracker groups windows into per-emitter tracks from capture continuity
+only. (2) A \emph{rate-aware} router classifies each track from 10 cheap spectral statistics
+computed in absolute frequency (referenced to a common rate, so a 1\,MHz BLE burst reads as
+narrowband whether captured at 6 or 25\,MS/s), with a per-class Mahalanobis gate (99th-percentile
+training threshold) routing out-of-family signals to UNKNOWN. (3) A tier registry maps protocol
+$\to$ frozen native encoder: drone (512-D), WiFi (512-D), BLE (128-D --- the B3 encoder of
+Sec.~\ref{sec:ble}, shipped raw with no calibration, as EF-style variance analysis predicts), and
+an UNKNOWN fallback tier. Mixed embedding dimensions never meet: clustering is always within a
+protocol group, and identities are namespaced (\texttt{d1.ble}, \texttt{d2.drone}, \dots).
+(4) Per track, $N^{*}{=}120$ windows are mean-pooled; per group, eigengap-$K$ (or operator-assisted
+$K$) spectral clustering assigns identities.
+
+\textbf{Validation.} Router held-out accuracy is 0.973 on 3-class training data and 1.000 on the
+4-class held-out routing test (WiFi / drone / BLE / synthetic unknown; BLE side = eval units
+only). The named adversarial risk --- a narrowband FM sweep now resembling narrowband BLE ---
+was measured, not assumed: the sweep sits at Mahalanobis distance 78.6 from the BLE class (its
+\emph{farthest}), 6.29 from the nearest class, above the 5.59 threshold, and routes to UNKNOWN.
+Scenario gates (pre-set, 5 repeats each): single-protocol drone discovery at $K{=}3,4$;
+mixed WiFi+drone; forced-UNKNOWN handling; BLE at $K\in\{2,3,4\}$ in both single-collection and
+pooled-collection variants; and a grand-mixed scenario running 2 drone + 2 WiFi + 2 BLE emitters
+simultaneously --- routing accuracy 1.00, per-protocol assisted discovery success 1.00, and
+\emph{zero} cross-protocol identity collisions. Integration was regression-gated: after adding
+the BLE tier and the rate-aware router, all pre-existing scenario results reproduced
+byte-identically. Small-$K$ perfection here does not contradict the 8-unit battery numbers
+(0.714 pooled): few same-model units at $N{=}120$ with a collection-invariant encoder is the
+easy end of the curve, and we say so.
+
+% =========================================================================
+\section{Limitations}
+% =========================================================================
+\label{sec:limits}
+
+(i) \textbf{Single dataset per claim-domain.} The BLE study is one dataset, one protocol; its
+transient refutation and calibration hierarchy are dataset-limited. Zigbee/other narrowband PHYs
+are enrolled-pending future work; until then such emitters route to UNKNOWN by design.
+(ii) \textbf{Checkpoint selection was validation-starved} for the BLE native arm (2 val units;
+selection ROC-AUC saturated from epoch 1, so early epochs won ties) --- the native encoder's
+ceiling may be \emph{higher} than reported. (iii) \textbf{No temporal/aging axis}: BLE collections
+are condition-disjoint, not day-disjoint; WiSig day diversity did not rescue discovery on its
+own. (iv) \textbf{Deployable count estimation is unsolved in the pooled regime} (all methods
+$\approx$0.19--0.26 deployable-$K$ ARI); assisted-$K$ is the shipping mode, honestly labeled.
+(v) \textbf{Demo geometry is mocked} (single-receiver source data replayed round-robin);
+localization/multilateration is out of scope. (vi) \textbf{Same-fab TEST hardness} (0.219 on
+board-18) bounds expectations for dense single-batch populations; discovery claims should always
+state the fabrication structure of the eval set.
+
+% =========================================================================
+\section{Conclusion}
+% =========================================================================
+
+Open-world emitter discovery is not open-set rejection with extra steps: its difficulty is
+concentrated in regimes --- pooled receivers, same-fabrication populations, unknown $K$ --- that
+rejection benchmarks never touch. Under a locked protocol we showed that burst integration, not
+representation, carries most cross-domain discovery ($N$-dependent wall); that a carefully built
+generalist encoder, physics injection, and adversarial invariance all fail pre-registered bars
+against frozen transfer; and that cheap native per-protocol enrollment escapes the pooled-regime
+wall ($0.284\!\to\!0.714$ on same-model BLE) by a measured mechanism --- learned
+collection-invariance. The resulting router-then-specialize system is validated end-to-end with
+regression gates and zero cross-protocol collisions. We offer the negative results, the locked
+protocol, and the regime map as reusable equipment for the field: discovery numbers are only
+meaningful with their integration length, $K$-mode, receiver structure, and fabrication
+structure attached.
+
+% =========================================================================
+\section*{Reproducibility}
+% =========================================================================
+All splits, plan documents, and thresholds are hash-frozen; encoders are frozen artifacts with
+recorded SHA-256; every table cell in this paper traces to a committed script and artifact path
+in the project repository (FINDINGS.md, EXT\_FINDINGS.md, EVAL\_PROTOCOL.md ledgers).
+\todo{public release decision + repo URL}
+
+% =========================================================================
+\begin{thebibliography}{9}
+\bibitem{wisig} \todo{WiSig dataset citation}
+\bibitem{oracle} \todo{ORACLE dataset citation}
+\bibitem{drff} \todo{DRFF / drone RF dataset citation}
+\bibitem{bled2} \todo{BLE XIAO dataset citation}
+\bibitem{supcon} P.~Khosla et al., ``Supervised contrastive learning,'' NeurIPS 2020.
+\bibitem{openmax} A.~Bendale, T.~Boult, ``Towards open set deep networks,'' CVPR 2016.
+\bibitem{dann} Y.~Ganin et al., ``Domain-adversarial training of neural networks,'' JMLR 2016.
+\bibitem{hdbscan} L.~McInnes, J.~Healy, ``Accelerated hierarchical density based clustering,'' ICDMW 2017.
+\bibitem{uavsig} \todo{UAVSig MILCOM 2024 citation}
+\end{thebibliography}
+
+\end{document}
