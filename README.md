@@ -1,202 +1,160 @@
-# DL-Based RF Hardware Fingerprinting
+# RF Hardware Fingerprinting & Open-World Emitter Discovery
 
-Deep learning system that identifies radio transmitters by their **hardware manufacturing imperfections** — IQ imbalance, phase noise, PA nonlinearity — rather than by protocol or content. Includes open-set discovery of unknown emitters never seen during training.
+Deep-learning **RF hardware fingerprinting**: identifying and discovering physical radio
+transmitters from the tiny, hardware-specific imperfections baked into their I/Q signal
+(carrier-frequency offset, I/Q imbalance, phase-noise, transient shape) — *not* their protocol
+payload. The system is **open-world**: it does not just classify enrolled radios, it **discovers
+and clusters emitters it has never seen** by embedding each signal and grouping by similarity.
 
-> **Active work → `summer_work/`.** The project has pivoted from the closed-set ORACLE
-> capstone (below) to **open-world discovery of individual same-model emitters under
-> cross-domain transfer**. The validated V4 encoder is reused (shared, not forked). See
-> `summer_work/CONTEXT.md` for the pivot, datasets, and locked decisions.
-
----
-
-## Open-World Discovery (active)
-
-New pipeline in `summer_work/`, built on the same V4 encoder:
-
-- **Goal:** cluster signals from emitters *never seen in training* into distinct device
-  identities (discovery, not rejection), and show the metric transfers across domains.
-- **Metric-learning pool:** WiSig **ManyTx** — 150 same-protocol WiFi transmitters, so the
-  encoder must learn hardware individuality, not protocol shortcuts.
-- **Split:** board-disjoint (109 train / 41 discover Tx), STFT `n_fft=64, hop=16` → `[2,33,13]`.
-- **Status:** metric encoder trained fresh with SupCon (CFO augmentation off — it erases the
-  fingerprint; ablation in `runs/`). Best embedding health **intra/inter cosine gap 0.859**,
-  stable, no receiver/day leakage (`runs/.../retrain_best/`). Discovery engine (HDBSCAN +
-  count estimation) is next.
-- **Temperature finding:** device separation is *monotone in SupCon temperature*. A sweep
-  (`runs/.../temp_sweep/`, const 0.3 / const 0.5 / anneal 0.5→0.2) settled it: **constant
-  τ=0.5 wins** — stable and highest gap. Any annealing toward ≤0.2 inflates inter-device
-  cosine and erodes the gap (τ→0.07 collapses it outright). Checkpoints are selected by
-  **eval gap, not loss** — loss was *lowest* in the worst-separating run.
-
-Layout: `summer_work/{datasets,train,discover,runs}/`, `shared.py` (re-exports parent
-encoder + loss). Run logs, curves, and locked split IDs are under `runs/wisig_supcon_fft64/`.
-
----
-
-## Overview
-
-| Item | Detail |
-|------|--------|
-| Architecture | Dual-branch encoder: Time 1D ResNet + Spectral 2D ResNet fused via Cross-Attention |
-| Loss | Supervised Contrastive Loss (SupCon) with temperature annealing |
-| Dataset | ORACLE (Northeastern GENESYS Lab) — 16 USRP X310 SDRs, 5 distances, IEEE 802.11a |
-| Parameters | 1.48M |
-| Best sim_gap | 1.3440 (v4, 4096-sample windows) |
-| Distance invariance | eval_sim = 0.986 at epoch 20 (trained on 8ft+14ft only) |
-
----
-
-## Dataset
-
-**ORACLE** — Open Radio Access Network (ORAN) RF fingerprinting dataset  
-- 16 identical USRP X310 software-defined radios transmitting IEEE 802.11a WiFi  
-- Recorded at 5 distances: 8ft, 14ft, 20ft, 26ft, 32ft  
-- Sample rate: 5 MS/s, 40M IQ samples per file  
-- Format: `.sigmf-data` (raw IQ, float32)  
-- Total size: ~100 GB  
-- Source: [GENESYS Lab, Northeastern University](https://genesys-lab.org/oracle)
-
-Training used **8ft + 14ft only**. Evaluation at 20ft + 26ft (unseen distances).  
-4 devices held out entirely for open-set discovery testing.
-
----
-
-## Architecture
+One `RFEncoder` backbone (~**1.5M params**) is trained across four RF domains (WiFi, drone
+OcuSync, ORACLE USRP, BLE) and driven by a **protocol-router demo** that turns raw I/Q streams
+into named device fingerprints end-to-end.
 
 ```
-IQ window [B, 2, 4096]
-        │
-        ├──► Time Branch (1D ResNet)
-        │    Large-kernel stem → 4× ResBlock1D + SE → FC(128→256)
-        │
-        └──► Spectral Branch (2D ResNet on STFT)
-             STFT [B, 2, 129, 61] → stem → 4× ResBlock2D + SE → GAP → FC(128→256)
-                            │
-                    CrossAttention(256, heads=4)  ← residual around attn
-                            │
-                    Concat + LayerNorm → [B, 512]
-                            │
-                    Projection Head FC(512→256→128) + L2-norm
-                            │
-                    Embedding [B, 128]
+ raw I/Q  ─►  ROUTER  ─►  TIER ENCODER  ─►  ACCUMULATOR  ─►  BASE STATION  ─►  device IDs
+ (antenna)   which       RFEncoder →        pool N=120       cluster per       d1.ble
+             protocol?    embedding          windows, L2      protocol group    d2.drone …
 ```
 
-Key design choices:
-- **GroupNorm** throughout — BatchNorm causes representation collapse in contrastive learning  
-- **Residual around CrossAttention** — prevents init-time collapse  
-- **No Dropout** — GroupNorm provides sufficient regularisation  
-- **Float32 cast before loss** — avoids AMP precision issues in SupCon
+---
+
+## Directory tree
+
+```
+final-project/
+├── README.md               ← you are here
+├── pyproject.toml          installable package (pip install -e .)
+├── requirements.txt        pinned runtime deps
+├── src/rffp/               ← ALL importable code (the `rffp` package)
+│   ├── config.py           ★ single place for every dataset / checkpoint / output path (env-overridable)
+│   ├── models/             encoder (dual-branch RFEncoder), losses (SupCon), gen_encoder
+│   ├── data/               per-domain loaders, domain registry, STFT front-end, WiSig reader
+│   ├── physics/            classical hand-crafted RF features (LPC residual, spectral stats)
+│   ├── training/           train_oracle · train_wisig{,_hardneg,_triplet} · train_lopo · train_dann · ablation · train_b3_ble
+│   ├── evaluation/         evaluate · inference · scoring (locked scorer) · bench/ (LOPO harness) · verify/ (gates)
+│   └── discovery/          ← open-world discovery
+│       ├── router/         the shippable protocol-router demo (run_demo, router, tiers, base_station …)
+│       ├── wisig/          Phase-2 WiSig discovery probes (burst, geometry, leakage controls)
+│       └── ext_ble/        BLE same-model study (batteries A / B1 / B3, feature extraction)
+├── docs/                   all findings & protocol ledgers (see docs index below) + results/ figures
+└── paper/                  IEEE conference draft (main.tex)
+```
+
+**Module count:** `models` 4 · `data` 5 · `physics` 2 · `training` 10 · `evaluation` 10 ·
+`discovery` 40. Every module is import-checked against the installed package.
 
 ---
 
-## Phase History
-
-### Phase 1 — Dataset Preparation
-- Downloaded ORACLE `.sigmf-data` files (~100 GB)  
-- Verified IQ format: interleaved float32, 2 channels (I/Q)  
-- Identified 16 device IDs, 5 distances, ~40M samples per file
-
-### Phase 2 — Data Loader
-- `np.memmap` for memory-efficient access to large files  
-- Window size: 1024 samples; skip first 1000 samples (startup transient)  
-- Clip threshold: reject windows with |value| > 10.0  
-- File-level 80/20 train/val split (prevents data leakage)  
-- Augmentation pipeline (order fixed):  
-  1. Phase rotation p=1.0 (complex rotation, not scalar — critical for hardware invariance)  
-  2. CFO injection p=0.8 (±0.005 normalised frequency)  
-  3. AWGN p=0.5 (SNR 15–50 dB)  
-  4. Amplitude scale p=0.3 (0.95–1.05)  
-  5. Per-window standardisation: (x − μ) / σ
-
-### Phase 3 — Training (v1/v2)
-- Window size: 1024 samples; STFT: FFT=128, hop=32 → [2, 65, 29]  
-- SupCon loss, temperature schedule: 0.5 → 0.1 → 0.07  
-- Batch: 12 devices × 16 windows = 192; 150 steps/epoch, 80 epochs  
-- **Issue found:** 32ft distance caused distance-based clustering in embedding space  
-- **Fix:** Excluded 32ft from training entirely
-
-### Phase 4 — Distance Invariance Fix (v3)
-- Trained only on 8ft + 14ft; validated on 20ft + 26ft  
-- eval_sim approached train_sim: gap reduced from 0.13 → 0.013 by epoch 60  
-- Confirmed model generalises to unseen distances without degradation
-
-### Phase 5 — Window Size Scaling (v4)
-- Increased window to **4096 samples** (4× larger); STFT: FFT=256, hop=64 → [2, 129, 61]  
-- Larger windows capture more IQ imbalance cycles → stronger fingerprint signal  
-- **sim_gap improved 159%**: 0.518 (1024-sample) → 1.344 (4096-sample)  
-- Best results: sim_gap = 1.3440, eval_sim = 0.986 at epoch 20
-
-### Phase 6 — Evaluation
-- t-SNE visualisation: embeddings form ring manifold (hardware fingerprints are continuous, not discrete clusters — expected for nearly-identical USRP hardware)  
-- KNN purity (all 16 devices): 34.6%; held-out only: 57.4%  
-- Low KNN purity explained by high between-device similarity (0.72–0.82) — 16 USRPs are genuinely very similar hardware
-
-### Phase 7 — Open-Set Discovery
-- 4 held-out devices streamed in, never seen during training  
-- Cosine similarity registry with EMA updates and auto-calibrated threshold (0.866)  
-- **Assignment purity: 90.6%** — correct window-to-emitter assignment  
-- **Limitation:** 3 of 4 held-out devices merge into 1 emitter (pairwise sim ~0.82 > any separable threshold) — reflects fundamental hardware similarity limit of ORACLE dataset
-
----
-
-## Results Summary
-
-| Metric | Value | Target | Status |
-|--------|-------|--------|--------|
-| Train within-device sim | 0.787 | > 0.75 | ✓ |
-| Eval within-device sim | 0.939 | — | — |
-| Train–eval sim gap | 0.033 | < 0.05 | ✓ |
-| Best sim_gap (v4) | 1.344 | > 0.7 | ✓ |
-| Open-set assignment purity | 90.6% | > 80% | ✓ |
-| KNN purity (all 16 devices) | 34.6% | > 80% | ✗ |
-
-KNN purity failure is a **dataset limitation**, not a model failure: 16 identical USRP X310 units have fingerprint differences at the limit of detectability. The model correctly learns continuous hardware variation; it simply cannot separate hardware that is nearly identical.
-
----
-
-## Files
-
-| File | Description |
-|------|-------------|
-| `model.py` | Dual-branch RFEncoder architecture |
-| `losses.py` | SupCon loss with numerical stability and NaN guard |
-| `train.py` | Training loop — Phase 6 v4 (4096-sample windows, 8ft+14ft only) |
-| `evaluate.py` | Phase 7 evaluation: t-SNE, KNN purity, distance invariance |
-| `inference.py` | Phase 8 open-set emitter discovery pipeline |
-| `results/FINAL_REPORT.md` | Training metrics across all epochs |
-| `results/RESULTS_REPORT.md` | Full evaluation results with analysis |
-| `results/tsne_by_device.png` | t-SNE coloured by device ID |
-| `results/tsne_by_distance.png` | t-SNE coloured by recording distance |
-
----
-
-## Setup
+## Quickstart & usage
 
 ```bash
-python3 -m venv rf_env && source rf_env/bin/activate
-pip install torch numpy scikit-learn matplotlib
+# 1. environment
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e .                    # installs rffp + deps from pyproject.toml
+#   (or: pip install -r requirements.txt)
+
+# 2. point at YOUR data & checkpoints (only step that needs local paths — see src/rffp/config.py)
+export RFFP_RUNS=/path/to/checkpoints     # frozen encoder .pt files
+export RFFP_WISIG=/path/to/ManyTx.pkl     # WiSig dataset
+export RFFP_DRFF=/path/to/drff_r2         # DRFF drone captures
+export RFFP_ORACLE=/path/to/KRI-16Devices-RawData
+export RFFP_BLE=/path/to/ble_xiao
+
+# 3. run the end-to-end open-world discovery demo
+python3 -m rffp.discovery.router.run_demo      # or the console script:  rffp-demo
 ```
 
-**Train:**
-```bash
-python3 train.py
-```
+| Task | Command |
+|---|---|
+| **Open-world router demo** (headline) | `python3 -m rffp.discovery.router.run_demo` |
+| Train ORACLE closed-set encoder | `python3 -m rffp.training.train_oracle` |
+| Train WiSig metric encoder (SupCon) | `python3 -m rffp.training.train_wisig` |
+| Cross-domain LOPO benchmark | `python3 -m rffp.evaluation.bench.lopo` |
+| ORACLE eval (t-SNE + purity) | `python3 -m rffp.evaluation.evaluate` |
+| Open-set inference demo | `python3 -m rffp.evaluation.inference --demo` |
+| Verification gates (V1–V5) | `python3 -m rffp.evaluation.verify.run_verify` |
 
-**Evaluate** (requires trained model at `~/phase6_output_v4/best_model.pt`):
-```bash
-python3 evaluate.py
-```
-
-**Open-set inference demo:**
-```bash
-python3 inference.py --demo
-```
+> **Every path is resolved in `src/rffp/config.py`** and overridable by the `RFFP_*` env vars
+> above — no code edits needed to relocate data. Datasets and `.pt` checkpoints live off-repo
+> (gitignored); point the env vars at your copies. Edge-deployable **ONNX** encoders are exported
+> separately (see the `FINAL_MODEL` bundle / `docs/`).
 
 ---
 
-## Limitations & Next Steps
+## Pipeline & architecture
 
-- **DroneRF dataset:** Switching to DroneRF (Bebop, AR, Phantom, BG) would test the system on genuinely different hardware from different manufacturers — fingerprints should be much more separable  
-- **Larger windows:** Literature suggests 10,000+ samples for robust IQ imbalance detection  
-- **Bispectrum features:** Higher-order statistics as additional spectral branch input  
-- **DBSCAN clustering:** Batch-mode clustering instead of streaming registry for better open-set separation
+### The encoder — dual-branch `RFEncoder` (`rffp/models/encoder.py`)
+
+```
+ raw I/Q [B,2,L] ──┬─► TimeBranch     1-D CNN  (wide-kernel stem + 4 residual blocks)      ─► 256-D
+                   └─► SpectralBranch 2-D CNN  over STFT magnitude [B,2,F,T]               ─► 256-D
+                                    │
+              cross-attention (query = time, key/value = spectral) + residual
+                                    │
+                        concat → LayerNorm(512)
+                          ├─► get_encoder_output()  →  512-D  (deep tiers: drone, WiFi)
+                          └─► projection head → L2  →  128-D  (metric head: BLE, SupCon target)
+```
+
+| Design choice | Value / rationale |
+|---|---|
+| **Two streams** | time domain catches burst-transient shape; frequency domain catches CFO / I-Q imbalance / phase noise |
+| **Normalization** | **GroupNorm** (stable with tiny batches) + **Squeeze-and-Excitation** channel attention |
+| **Fusion** | `nn.MultiheadAttention(256, 4)` cross-attention, residual-added (prevents init collapse) |
+| **Loss** | **Supervised Contrastive (SupCon)** with annealed temperature → same-device pulls together |
+| **Output** | 512-D fusion embedding, or 128-D L2-normalized metric embedding |
+| **Window sizes** | BLE **1850 @ 6 MS/s** · WiSig **256 @ 25 MS/s** · drone **4096 @ 50 MS/s** · ORACLE **4096 @ 5 MS/s** |
+
+### The discovery system (`rffp/discovery/router/`)
+
+1. **Router** — rate-aware spectral features → LogisticRegression → `{wifi, drone, ble, unknown}`, with a per-class **Mahalanobis novelty gate** (classical, not a neural net).
+2. **Tier encoder** — routes to the matching frozen `RFEncoder` checkpoint per protocol.
+3. **Accumulator** — pools **N\*=120** windows per track (mean + L2) into one fingerprint.
+4. **Base station** — clusters fingerprints **within each protocol group** via **eigengap-K** + spectral partition; assigns namespaced IDs (`d1.ble`, `d2.drone`).
+5. **Scoring** — the **locked scorer** (`rffp/evaluation/scoring.py`): HDBSCAN noise points count as singleton clusters, so a method can't inflate ARI by dumping hard emitters into "noise".
+
+---
+
+## Results summary
+
+**Phase 1 — ORACLE closed-set** (16 *identical* USRP X310 units — fingerprinting at the limit of detectability)
+- Within-device similarity **0.787** (target >0.75 ✓); held-out KNN purity **57.4%**; open-set discovered **2 of 4** held-out devices. Distance-invariant (train 8/14 ft, eval sim **0.986** at 20–26 ft). *Identical-hardware units are near the detectability floor — motivated the pivot to open-world discovery.*
+
+**Phase 2 — WiSig & the N-dependent wall** (`docs/FINDINGS.md`)
+- The cross-domain gap is **N-dependent**: at N=10 methods sit at 0.14–0.28; at **N=120 they converge to 0.62–0.79** — heavy burst integration, not representation, drives most of the discovery gain.
+
+  | method (mavicAir2 8-way) | N=10 | **N=120 (km / sp)** |
+  |---|---|---|
+  | native drone-trained (4096) | 0.276 | **0.792 / 0.835** |
+  | frozen WiSig (OPT-B 256) | 0.137 | **0.729 / 0.777** |
+  | classical-19 | 0.174 | **0.713 / 0.666** |
+- In-domain WiSig (locked scorer): DEV **0.727**; one-touch held-out TEST (board-18) **0.219** (spent, never re-run).
+
+**Phase 3 — BLE same-model study** (`docs/EXT_FINDINGS.md`)
+- Native-from-scratch **B3** owns the pooled regime: pooled N=120 ARI **0.714** vs B1 0.284 / A 0.193; best receiver-transfer **0.759**. B3 is **calibration-indifferent** (collection η² ≈ 0) → ships raw.
+
+**Phase 4/5 — Protocol-router demo** (`docs/ROUTER_DEMO.md`)
+- Router accuracy **0.973**; grand-mixed scenario (drone + WiFi + BLE) routing **1.00**, per-group ARI **1.00**, **0 cross-protocol ID collisions**. Operating point: N\*=120, eigengap-K, assisted-K primary.
+
+> Ledgers of record: `docs/EVAL_PROTOCOL.md` (splits, locked noise rule, board-18 TEST),
+> `docs/FINDINGS.md` (F1–F8, DANN null), `docs/EXT_FINDINGS.md` (BLE EF1–EF8),
+> `docs/ROUTER_DEMO.md` (system + gates). Paper draft in `paper/main.tex`.
+
+---
+
+## Documentation index (`docs/`)
+
+| File | What |
+|---|---|
+| `EVAL_PROTOCOL.md` | Locked evaluation protocol: splits, HDBSCAN noise rule, burst construction, board-18 one-touch TEST |
+| `FINDINGS.md` | Cross-domain findings F1–F8 + DANN null result |
+| `EXT_FINDINGS.md` | BLE same-model study EF1–EF8, variance decomposition, calibration-indifference |
+| `ROUTER_DEMO.md` | Protocol-router system design, evidence, gates, honest caveats |
+| `PAPER_PLAN.md` · `CONTEXT.md` · `NEIGHBOR_ANALYSIS.md` | Paper framing, project context, related-work analysis |
+| `results/` | ORACLE Phase-1 reports + t-SNE figures |
+
+## Notes on scope & reproducibility
+- **Datasets and checkpoints are external** (gitignored); set the `RFFP_*` env vars. Raw dataset paths are the *only* external requirement.
+- The core pipeline (models, data, physics, evaluation, router demo, training entrypoints) is **import-verified** against the installed package. Full end-to-end runs additionally require the datasets/checkpoints and (for training) a CUDA GPU.
+- A few deep benchmark/verify scripts (`bench/lopo`, `verify/run_verify`) can cross-check against an extended R&D research tree; where that tree is absent, those sub-checks skip gracefully with a clear message.
+- Mocked demo geometry (rssi/aoa/tdoa) is synthetic and never used for clustering; localization is out of scope.

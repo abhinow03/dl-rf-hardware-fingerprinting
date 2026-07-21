@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rffp"
+version = "1.0.0"
+description = "Deep-learning RF hardware fingerprinting and open-world emitter discovery"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary — capstone deliverable" }
+dependencies = [
+    "torch>=2.1",
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "scikit-learn>=1.3",   # provides sklearn.cluster.HDBSCAN
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+onnx = ["onnx>=1.15", "onnxruntime>=1.17"]   # edge-export tooling (see FINAL_MODEL bundle)
+
+[project.scripts]
+rffp-demo = "rffp.discovery.router.run_demo:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+rffp = ["discovery/ext_ble/*.json"]

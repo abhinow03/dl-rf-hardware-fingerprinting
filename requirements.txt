@@ -1,0 +1,10 @@
+# Core runtime for the rffp package. Install the package instead with:  pip install -e .
+torch>=2.1
+numpy>=1.24
+scipy>=1.10
+scikit-learn>=1.3     # sklearn.cluster.HDBSCAN (used by the locked scorer)
+matplotlib>=3.7
+
+# Optional: ONNX edge-export tooling (encoders -> .onnx for edge devices)
+# onnx>=1.15
+# onnxruntime>=1.17

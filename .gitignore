@@ -1,4 +1,4 @@
-# code only in git — artifacts, checkpoints, data caches excluded
+# ── code + docs only; artifacts, checkpoints, data caches excluded ──
 __pycache__/
 *.py[cod]
 *.pt
@@ -7,15 +7,22 @@ __pycache__/
 *.npy
 *.pkl
 *.log
-# experiment artifacts (frozen main + new gen_rff branch)
-runs/
-results/
-runs_gen/
-results_gen/
-demo/out/
 *.jsonl
 .ipynb_checkpoints/
-# ext-protocols: raw datasets + audit outputs never enter git (only the .md verdicts do)
-gen_rff/ext_protocols/data_raw/
-gen_rff/ext_protocols/audit_out/*
-!gen_rff/ext_protocols/audit_out/*.md
+
+# python packaging / editable-install artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# pipeline outputs & frozen checkpoint stores (off-repo, machine-local; see rffp.config)
+/results_gen/
+/runs_gen/
+runs/
+
+# legacy pre-release trees left on disk after the src/ reorg (untracked; hold gitignored assets)
+/summer_work/
+/gen_rff/
+/demo/
+/results/
